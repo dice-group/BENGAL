@@ -8,8 +8,9 @@ package org.aksw.simba.bengal.selector;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
+
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.Statement;
 
 /**
  *

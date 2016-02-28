@@ -6,7 +6,8 @@
 package org.aksw.simba.bengal.selector;
 
 import java.util.List;
-import org.apache.jena.rdf.model.Statement;
+
+import com.hp.hpl.jena.rdf.model.Statement;
 
 /**
  * Gathers a set of triples for verbalization

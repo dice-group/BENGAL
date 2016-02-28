@@ -16,10 +16,11 @@ import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.simba.bengal.paraphrasing.Paraphraser;
 import org.aksw.simba.bengal.selector.TripleSelector;
 import org.aksw.simba.bengal.verbalizer.Verbalizer;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.Statement;
 
 /**
  *
