@@ -21,8 +21,10 @@ import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.query.Syntax;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
 
 /**
@@ -40,27 +42,87 @@ public abstract class AbstractSelector implements TripleSelector {
      * @param graph
      * @return CBD of res
      */
-    List<Statement> getCBD(Resource res, String endpoint, String graph) {
+    List<Statement> getSymmetricCBD(Resource res, Set<String> classes, String endpoint, String graph) {
         List<Statement> statements = new ArrayList<>();
         Model m = ModelFactory.createDefaultModel();
+        String sparqlQueryString = "";
         try {
-            String sparqlQueryString = "SELECT ?p ?o WHERE { <" + res + "> ?p ?o. FILTER isBlank(?o) }";
+            if (classes != null) {
+                if (classes.isEmpty()) {
+                    sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o} ORDER BY DESC(?s)";
+                } else {
+                    sparqlQueryString = "SELECT ?p ?o WHERE {";
+                    sparqlQueryString = sparqlQueryString + " {<" + res + "> ?p ?o}";
+                    for (String c : classes) {
+                        sparqlQueryString = sparqlQueryString + "{ ?o a " + c + ". } UNION ";
+                    }
+                    sparqlQueryString = sparqlQueryString.substring(0, sparqlQueryString.length() - 6);
+                    sparqlQueryString = sparqlQueryString + " }";
+                }
+            }
+
+            System.out.println(sparqlQueryString);
             QueryFactory.create(sparqlQueryString);
-            QueryExecution qexec = QueryExecutionFactory.sparqlService(
-                    endpoint, sparqlQueryString, graph);
+            QueryExecution qexec;
+            if (graph != null) {
+                qexec = QueryExecutionFactory.sparqlService(
+                        endpoint, sparqlQueryString, graph);
+            } else {
+                qexec = QueryExecutionFactory.sparqlService(
+                        endpoint, sparqlQueryString);
+            }
             ResultSet cbd = qexec.execSelect();
-            qexec.close();
             while (cbd.hasNext()) {
                 QuerySolution qs = cbd.nextSolution();
-//                RDFNode p =  qs.get("p");
-//                m.add(res, , qs.get("o"));
+                Property p = m.createProperty(qs.get("p").asResource().getURI());
+                if (qs.get("o").isLiteral()) {
+                    m.add(res, p, qs.getLiteral("o"));
+                } else {
+                    m.add(res, p, qs.getResource("o"));
+                }
             }
+            qexec.close();
+
+            if (classes != null) {
+                if (classes.isEmpty()) {
+                    sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o} ORDER BY DESC(?s)";
+                } else {
+                    sparqlQueryString = "SELECT ?p ?o WHERE {";
+                    sparqlQueryString = sparqlQueryString + " {?o ?p <" + res + ">}";
+                    for (String c : classes) {
+                        sparqlQueryString = sparqlQueryString + "{ ?o a " + c + ". } UNION ";
+                    }
+                    sparqlQueryString = sparqlQueryString.substring(0, sparqlQueryString.length() - 6);
+                    sparqlQueryString = sparqlQueryString + " }";
+                }
+            }
+
+            System.out.println(sparqlQueryString);
+            QueryFactory.create(sparqlQueryString);
+            if (graph != null) {
+                qexec = QueryExecutionFactory.sparqlService(
+                        endpoint, sparqlQueryString, graph);
+            } else {
+                qexec = QueryExecutionFactory.sparqlService(
+                        endpoint, sparqlQueryString);
+            }
+            cbd = qexec.execSelect();
+            while (cbd.hasNext()) {
+                QuerySolution qs = cbd.nextSolution();
+                Property p = m.createProperty(qs.get("p").asResource().getURI());
+
+                m.add(qs.getResource("o"), p, res);
+            }
+            qexec.close();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         Map<Integer, Statement> map = new HashMap<>();
-        for (Statement s : statements) {
+        StmtIterator iter = m.listStatements();
+        while (iter.hasNext()) {
+            Statement s = iter.next();
             map.put(s.hashCode(), s);
         }
         List<Integer> keys = new ArrayList<>(map.keySet());
@@ -71,26 +133,57 @@ public abstract class AbstractSelector implements TripleSelector {
         }
         return result;
     }
+    
+    /** Sort statements by hash
+     * 
+     * @param statements Set of statements
+     * @return Set of statements sorted by hash
+     */
 
-    public List<Resource> getResources(Set<String> classes, String endpoint) {
+    public List<Statement> sortStatementsByHash(Set<Statement> statements)
+    {
+        Map<Integer, Statement> map = new HashMap<>();
+        for (Statement s: statements) {
+            map.put(s.hashCode(), s);
+        }
+        List<Integer> keys = new ArrayList<>(map.keySet());
+        Collections.sort(keys);
+        List<Statement> result = new ArrayList<>();
+        for (int k : keys) {
+            result.add(map.get(k));
+        }
+        return result;
+    }
+    /**
+     * Get all resources that belong to the union of classes and sort them by
+     * URI in desceding order
+     *
+     * @param classes Set of classes for resources
+     * @param endpoint Endpoint from which the data is to be selected
+     * @param graph Graph for the endpoint
+     * @return Sorted list of resources from the classes
+     */
+    public List<Resource> getResources(Set<String> classes, String endpoint, String graph) {
         String query = "";
         if (classes != null) {
             if (classes.isEmpty()) {
                 query = "SELECT ?s WHERE {?s a ?x} ORDER BY DESC(?s)";
             } else {
-                query = "SELECT ?s WHERE {";
+                query = "SELECT ?x WHERE {";
                 for (String c : classes) {
                     query = query + "{ ?x a " + c + ". } UNION ";
+                }
+                query = query.substring(0, query.length() - 6);
+                query = query + " {?x ?p ?y} ";
+                for (String c : classes) {
+                    query = query + "{ ?y a " + c + ". } UNION ";
                 }
                 query = query.substring(0, query.length() - 6);
                 query = query + " } LIMIT 10";
             }
         }
         System.out.println(query);
-        // create the Jena query using the ARQ syntax (has additional support for SPARQL federated queries)
         Query sparqlQuery = QueryFactory.create(query, Syntax.syntaxARQ);
-    // we want to bind the ?uniprotAccession variable in the query
-        // to the URI for Q16850 which is http://purl.uniprot.org/uniprot/Q16850
 
         QueryEngineHTTP httpQuery = new QueryEngineHTTP(endpoint, sparqlQuery);
         // execute a Select query
@@ -100,14 +193,11 @@ public abstract class AbstractSelector implements TripleSelector {
             QuerySolution solution = results.next();
             System.out.println(solution);
             // get the value of the variables in the select clause
-            try
-            {
+            try {
                 Resource r = solution.getResource("x");
                 result.add(r);
                 System.out.println(r);
-            }
-            catch(Exception e)
-            {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
