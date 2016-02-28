@@ -6,10 +6,12 @@
 package org.aksw.simba.bengal.verbalizer;
 
 import java.util.List;
+
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
-import org.apache.jena.rdf.model.Statement;
+
+import com.hp.hpl.jena.rdf.model.Statement;
 
 /**
  * A deterministic verbalizer which relies on the SemWeb2NL project.
