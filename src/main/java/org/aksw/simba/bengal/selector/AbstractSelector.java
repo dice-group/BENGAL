@@ -42,18 +42,18 @@ public abstract class AbstractSelector implements TripleSelector {
      * @param graph
      * @return CBD of res
      */
-    List<Statement> getSymmetricCBD(Resource res, Set<String> classes, String endpoint, String graph) {
+    List<Statement> getSymmetricCBD(Resource res, Set<String> targetClasses, String endpoint, String graph) {
         List<Statement> statements = new ArrayList<>();
         Model m = ModelFactory.createDefaultModel();
         String sparqlQueryString = "";
         try {
-            if (classes != null) {
-                if (classes.isEmpty()) {
+            if (targetClasses != null) {
+                if (targetClasses.isEmpty()) {
                     sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o} ORDER BY DESC(?s)";
                 } else {
                     sparqlQueryString = "SELECT ?p ?o WHERE {";
                     sparqlQueryString = sparqlQueryString + " {<" + res + "> ?p ?o}";
-                    for (String c : classes) {
+                    for (String c : targetClasses) {
                         sparqlQueryString = sparqlQueryString + "{ ?o a " + c + ". } UNION ";
                     }
                     sparqlQueryString = sparqlQueryString.substring(0, sparqlQueryString.length() - 6);
@@ -83,13 +83,13 @@ public abstract class AbstractSelector implements TripleSelector {
             }
             qexec.close();
 
-            if (classes != null) {
-                if (classes.isEmpty()) {
+            if (targetClasses != null) {
+                if (targetClasses.isEmpty()) {
                     sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o} ORDER BY DESC(?s)";
                 } else {
                     sparqlQueryString = "SELECT ?p ?o WHERE {";
                     sparqlQueryString = sparqlQueryString + " {?o ?p <" + res + ">}";
-                    for (String c : classes) {
+                    for (String c : targetClasses) {
                         sparqlQueryString = sparqlQueryString + "{ ?o a " + c + ". } UNION ";
                     }
                     sparqlQueryString = sparqlQueryString.substring(0, sparqlQueryString.length() - 6);
@@ -134,6 +134,73 @@ public abstract class AbstractSelector implements TripleSelector {
         return result;
     }
     
+        /**
+     * Returns list of triples for a given resource and data source
+     *
+     * @param res
+     * @param endpoint
+     * @param graph
+     * @return CBD of res
+     */
+    List<Statement> getCBD(Resource res, Set<String> targetClasses, String endpoint, String graph) {
+        List<Statement> statements = new ArrayList<>();
+        Model m = ModelFactory.createDefaultModel();
+        String sparqlQueryString = "";
+        try {
+            if (targetClasses != null) {
+                if (targetClasses.isEmpty()) {
+                    sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o} ORDER BY DESC(?s)";
+                } else {
+                    sparqlQueryString = "SELECT ?p ?o WHERE {";
+                    sparqlQueryString = sparqlQueryString + " {<" + res + "> ?p ?o}";
+                    for (String c : targetClasses) {
+                        sparqlQueryString = sparqlQueryString + "{ ?o a " + c + ". } UNION ";
+                    }
+                    sparqlQueryString = sparqlQueryString.substring(0, sparqlQueryString.length() - 6);
+                    sparqlQueryString = sparqlQueryString + " }";
+                }
+            }
+
+            System.out.println(sparqlQueryString);
+            QueryFactory.create(sparqlQueryString);
+            QueryExecution qexec;
+            if (graph != null) {
+                qexec = QueryExecutionFactory.sparqlService(
+                        endpoint, sparqlQueryString, graph);
+            } else {
+                qexec = QueryExecutionFactory.sparqlService(
+                        endpoint, sparqlQueryString);
+            }
+            ResultSet cbd = qexec.execSelect();
+            while (cbd.hasNext()) {
+                QuerySolution qs = cbd.nextSolution();
+                Property p = m.createProperty(qs.get("p").asResource().getURI());
+                if (qs.get("o").isLiteral()) {
+                    m.add(res, p, qs.getLiteral("o"));
+                } else {
+                    m.add(res, p, qs.getResource("o"));
+                }
+            }
+            qexec.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Map<Integer, Statement> map = new HashMap<>();
+        StmtIterator iter = m.listStatements();
+        while (iter.hasNext()) {
+            Statement s = iter.next();
+            map.put(s.hashCode(), s);
+        }
+        List<Integer> keys = new ArrayList<>(map.keySet());
+        Collections.sort(keys);
+        List<Statement> result = new ArrayList<>();
+        for (int k : keys) {
+            result.add(map.get(k));
+        }
+        return result;
+    }
     /** Sort statements by hash
      * 
      * @param statements Set of statements
@@ -179,7 +246,7 @@ public abstract class AbstractSelector implements TripleSelector {
                     query = query + "{ ?y a " + c + ". } UNION ";
                 }
                 query = query.substring(0, query.length() - 6);
-                query = query + " } LIMIT 10";
+                query = query + " }";
             }
         }
         System.out.println(query);
