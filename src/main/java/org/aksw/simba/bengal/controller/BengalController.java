@@ -19,8 +19,13 @@ import org.aksw.simba.bengal.verbalizer.Verbalizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Statement;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import org.aksw.simba.bengal.selector.SimpleSummarySelector;
+import org.aksw.simba.bengal.verbalizer.SemWeb2NLVerbalizer;
+import org.dllearner.kb.sparql.SparqlEndpoint;
 
 /**
  *
@@ -30,26 +35,42 @@ import com.hp.hpl.jena.rdf.model.Statement;
 public class BengalController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BengalController.class);
+    private static final String NUMBEROFDOCS = "numberofdocs";
 
-    public void generateCorpus(Map<String, String> parameters, Model data, String corpusName) {
+    public static void generateCorpus(Map<String, String> parameters, String endpoint, String corpusName) {
+        if (parameters == null)
+            parameters = new HashMap<>();
         // TODO instantiate components;
-        TripleSelector tripleSelector = null;
-        Verbalizer verbalizer = null;
+        Set<String> classes = new HashSet<>();
+        classes.add("<http://dbpedia.org/ontology/Person>");
+        classes.add("<http://dbpedia.org/ontology/Place>");
+        classes.add("<http://dbpedia.org/ontology/Organisation>");
+        
+        TripleSelector tripleSelector = new SimpleSummarySelector(classes, classes, endpoint, null);
+        Verbalizer verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia());
         Paraphraser paraphraser = null;
 
-        // TODO get the number of documents from the parameters
-        int numberOfDocuments = 0;
-
+        // Get the number of documents from the parameters
+        int numberOfDocuments = 100;
+        if (parameters.containsKey(NUMBEROFDOCS)) {
+            try {
+                numberOfDocuments = Integer.parseInt(parameters.get(NUMBEROFDOCS));
+            } catch (Exception e) {
+                LOGGER.error("Could not parse number of documents");
+            }
+        }
         List<Statement> triples;
         Document document;
-        List<Document> documents = new ArrayList<Document>();
+        List<Document> documents = new ArrayList<>();
         while (documents.size() < numberOfDocuments) {
             // TODO select triples
             triples = tripleSelector.getNextStatements();
             // TODO create document
             document = verbalizer.generateDocument(triples);
             // TODO paraphrase document
-            document = paraphraser.getParaphrase(document);
+            if (paraphraser != null) {
+                document = paraphraser.getParaphrase(document);
+            }
             // If the generation and paraphrasing were successful
             if (document != null) {
                 documents.add(document);
@@ -57,7 +78,7 @@ public class BengalController {
         }
 
         // TODO generate file name and path from corpus name
-        String filePath = null;
+        String filePath = corpusName;
         // write the document
         NIFWriter writer = new TurtleNIFWriter();
         FileOutputStream fout = null;
@@ -75,7 +96,10 @@ public class BengalController {
                 }
             }
         }
-
-        return;
+    }
+    
+    public static void main(String args[])
+    {
+        BengalController.generateCorpus(new HashMap<String, String>(), "http://dbpedia.org/sparql", "E:/tmp/test1.bengal.txt");
     }
 }

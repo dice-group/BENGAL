@@ -39,10 +39,16 @@ import org.dllearner.kb.sparql.SparqlQuery;
  */
 public class SemWeb2NLVerbalizer implements Verbalizer {
 
+    TripleConverter converter;
+    SparqlEndpoint endpoint;
+    public SemWeb2NLVerbalizer(SparqlEndpoint endpoint)
+    {
+        this.endpoint = endpoint; 
+        converter = new TripleConverter(this.endpoint);
+    }
+    
     public Document generateDocument(List<Statement> triples) {
 
-        SparqlEndpoint endpoint = SparqlEndpoint.getEndpointDBpedia();
-        TripleConverter converter = new TripleConverter(endpoint);
         String text = "";
 
         //generate text
@@ -65,7 +71,7 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
     }
 
     private String getEnglishLabel(String resource) {
-        SparqlEndpoint endpoint = SparqlEndpoint.getEndpointDBpedia();
+
         if (resource.equals(RDF.type.getURI())) {
             return "type";
         } else if (resource.equals(RDFS.label.getURI())) {
@@ -130,7 +136,7 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
         classes.add("<http://dbpedia.org/ontology/Organisation>");
         TripleSelector ts = new SimpleSummarySelector(classes, classes, "http://dbpedia.org/sparql", null);
         List<Statement> stmts = ts.getNextStatements();
-        Document doc = new SemWeb2NLVerbalizer().generateDocument(stmts);
+        Document doc = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia()).generateDocument(stmts);
         System.out.println(doc);
     }
 }
