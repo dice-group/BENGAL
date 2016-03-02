@@ -54,13 +54,14 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
 
         //annotate entities
         Document document = new DocumentImpl(text);
+        Set<Resource> resources = new HashSet<>();
         for (Statement s : triples) {
-            document = annotateDocument(document, s.getSubject());
+            resources.add(s.getSubject());
             if (s.getObject().isResource()) {
-                document = annotateDocument(document, s.getSubject());
+                resources.add(s.getObject().asResource());
             }
         }
-        return document;
+        return annotateDocument(document, resources);
     }
 
     private String getEnglishLabel(String resource) {
@@ -95,10 +96,18 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
         return null;
     }
 
+    private Document annotateDocument(Document document, Set<Resource> resources) {
+        for(Resource r: resources)
+        {
+            document = annotateDocument(document, r);
+        }
+        return document;
+    }
+
     private Document annotateDocument(Document document, Resource resource) {
         String label = getEnglishLabel(resource.getURI());
         String text = document.getText();
-        
+
         //find all positions
         ArrayList<Integer> positions = new ArrayList();
         Pattern p = Pattern.compile(label);  // insert your pattern here
@@ -106,16 +115,15 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
         while (m.find()) {
             positions.add(m.start());
         }
-        
-        for (int index: positions) {
+
+        for (int index : positions) {
             document.addMarking(new NamedEntity(index, label.length(), resource.getURI()));
         }
-        
+
         return document;
     }
-    
-    public static void main(String args[])
-    {
+
+    public static void main(String args[]) {
         Set<String> classes = new HashSet<>();
         classes.add("<http://dbpedia.org/ontology/Person>");
         classes.add("<http://dbpedia.org/ontology/Place>");
