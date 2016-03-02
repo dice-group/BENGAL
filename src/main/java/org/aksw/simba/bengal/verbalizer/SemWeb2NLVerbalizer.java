@@ -54,10 +54,9 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
         //generate text
         for (Statement s : triples) {
             Triple t = Triple.create(s.getSubject().asNode(), s.getPredicate().asNode(), s.getObject().asNode());
-            text = text + " " + converter.convertTripleToText(t);
+            text = text + converter.convertTripleToText(t) + ". ";
         }
-        text = text.substring(1);
-
+        text = text.substring(0, text.length()-1);
         //annotate entities
         Document document = new DocumentImpl(text);
         Set<Resource> resources = new HashSet<>();

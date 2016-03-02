@@ -51,7 +51,7 @@ public class BengalController {
         Paraphraser paraphraser = null;
 
         // Get the number of documents from the parameters
-        int numberOfDocuments = 100;
+        int numberOfDocuments = 10;
         if (parameters.containsKey(NUMBEROFDOCS)) {
             try {
                 numberOfDocuments = Integer.parseInt(parameters.get(NUMBEROFDOCS));
@@ -62,6 +62,7 @@ public class BengalController {
         List<Statement> triples;
         Document document;
         List<Document> documents = new ArrayList<>();
+        int counter = 0;
         while (documents.size() < numberOfDocuments) {
             // TODO select triples
             triples = tripleSelector.getNextStatements();
@@ -73,6 +74,8 @@ public class BengalController {
             }
             // If the generation and paraphrasing were successful
             if (document != null) {
+                document.setDocumentURI("http://aksw.org/generated/"+counter);
+                counter++;
                 documents.add(document);
             }
         }
