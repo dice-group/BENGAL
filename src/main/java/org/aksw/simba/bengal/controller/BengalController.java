@@ -37,6 +37,11 @@ public class BengalController {
     private static final Logger LOGGER = LoggerFactory.getLogger(BengalController.class);
     private static final String NUMBEROFDOCS = "numberofdocs";
 
+    public static void main(String args[]) {
+        BengalController.generateCorpus(new HashMap<String, String>(), "http://dbpedia.org/sparql",
+                "test_output.bengal.txt");
+    }
+
     public static void generateCorpus(Map<String, String> parameters, String endpoint, String corpusName) {
         if (parameters == null)
             parameters = new HashMap<>();
@@ -45,7 +50,7 @@ public class BengalController {
         classes.add("<http://dbpedia.org/ontology/Person>");
         classes.add("<http://dbpedia.org/ontology/Place>");
         classes.add("<http://dbpedia.org/ontology/Organisation>");
-        
+
         TripleSelector tripleSelector = new SimpleSummarySelector(classes, classes, endpoint, null);
         Verbalizer verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia());
         Paraphraser paraphraser = null;
@@ -74,7 +79,7 @@ public class BengalController {
             }
             // If the generation and paraphrasing were successful
             if (document != null) {
-                document.setDocumentURI("http://aksw.org/generated/"+counter);
+                document.setDocumentURI("http://aksw.org/generated/" + counter);
                 counter++;
                 documents.add(document);
             }
@@ -99,10 +104,5 @@ public class BengalController {
                 }
             }
         }
-    }
-    
-    public static void main(String args[])
-    {
-        BengalController.generateCorpus(new HashMap<String, String>(), "http://dbpedia.org/sparql", "E:/tmp/test1.bengal.txt");
     }
 }
