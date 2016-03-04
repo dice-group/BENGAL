@@ -37,12 +37,12 @@ public class BengalController {
     private static final Logger LOGGER = LoggerFactory.getLogger(BengalController.class);
     private static final String NUMBEROFDOCS = "numberofdocs";
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws Exception {
         BengalController.generateCorpus(new HashMap<String, String>(), "http://dbpedia.org/sparql",
                 "test_output.bengal.txt");
     }
 
-    public static void generateCorpus(Map<String, String> parameters, String endpoint, String corpusName) {
+    public static void generateCorpus(Map<String, String> parameters, String endpoint, String corpusName) throws Exception {
         if (parameters == null)
             parameters = new HashMap<>();
         // TODO instantiate components;

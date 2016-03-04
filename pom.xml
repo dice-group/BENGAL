@@ -51,6 +51,12 @@
 			<artifactId>interfaces</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
+                    <dependency>
+                        <groupId>com.memetix</groupId>
+                        <artifactId>microsoft-translator-java-api</artifactId>
+                        <version>0.6.1</version>
+                        <type>jar</type>
+                    </dependency>
 
 		<!-- ~~~~~~~~~~~~~~~~~~~ Logging ~~~~~~~~~~~~~~~~~~~~~~ -->
 		<!-- slf4j: Logging API -->
