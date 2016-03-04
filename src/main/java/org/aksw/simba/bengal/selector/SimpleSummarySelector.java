@@ -93,6 +93,10 @@ public class SimpleSummarySelector extends AbstractSelector {
         int counter = Math.abs(r.nextInt() % resources.size());
         // get symmetric CBD
         List<Statement> statements = getSummary(resources.get(counter));
+        if (statements == null) {
+            // there was an error
+            return null;
+        }
 
         // now pick random statements
         Set<Statement> result = new HashSet<>();

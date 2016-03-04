@@ -49,7 +49,7 @@ public class Paraphraser {
             return doc;
         }
  
-        return doc;
+        return newDoc;
     
     }
     

@@ -20,6 +20,8 @@ import org.aksw.simba.bengal.selector.TripleSelector;
 import org.aksw.triple2nl.TripleConverter;
 import org.dllearner.kb.sparql.SparqlEndpoint;
 import org.dllearner.kb.sparql.SparqlQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.QuerySolution;
@@ -37,8 +39,10 @@ import com.hp.hpl.jena.vocabulary.RDFS;
  */
 public class SemWeb2NLVerbalizer implements Verbalizer {
 
-    TripleConverter converter;
-    SparqlEndpoint endpoint;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SemWeb2NLVerbalizer.class);
+
+    private TripleConverter converter;
+    private SparqlEndpoint endpoint;
 
     public SemWeb2NLVerbalizer(SparqlEndpoint endpoint) {
         this.endpoint = endpoint;
@@ -103,20 +107,28 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
     private Document annotateDocument(Document document, Set<Resource> resources) {
         for (Resource r : resources) {
             document = annotateDocument(document, r);
+            if(document == null) {
+                return null;
+            }
         }
         return document;
     }
 
     private Document annotateDocument(Document document, Resource resource) {
         String label = getEnglishLabel(resource.getURI());
+        if (label == null) {
+            LOGGER.warn("Couldn't find an English label for " + resource.toString() + ". Returning null.");
+            return null;
+        }
         String text = document.getText();
 
         // find all positions
         ArrayList<Integer> positions = new ArrayList<Integer>();
-        Pattern p = Pattern.compile(label); // insert your pattern here
-        Matcher m = p.matcher(text);
-        while (m.find()) {
-            positions.add(m.start());
+        int pos = text.indexOf(label);
+        while (pos >= 0) {
+            positions.add(pos);
+            pos += label.length();
+            pos = text.indexOf(label, pos);
         }
 
         for (int index : positions) {

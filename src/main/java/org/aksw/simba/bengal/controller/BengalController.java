@@ -48,6 +48,7 @@ public class BengalController {
     private static final int MAX_SENTENCE = 5;
     private static final boolean USE_PATH_PATTERN = true;
     private static final boolean USE_SYMMETRIC_CBD = false;
+    private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 1000;
 
     public static void main(String args[]) {
         String corpusName = "bengal_" + (USE_PATH_PATTERN ? "path" : (USE_SYMMETRIC_CBD ? "sym" : "star")) + "_"
@@ -104,17 +105,29 @@ public class BengalController {
         while (documents.size() < numberOfDocuments) {
             // select triples
             triples = tripleSelector.getNextStatements();
-            // create document
-            document = verbalizer.generateDocument(triples);
-            // TODO paraphrase document
-            if (paraphraser != null) {
-                document = paraphraser.getParaphrase(document);
+            if (triples != null) {
+                // create document
+                document = verbalizer.generateDocument(triples);
+                if (document != null) {
+                    // TODO paraphrase document
+                    if (paraphraser != null) {
+                        try {
+                            document = paraphraser.getParaphrase(document);
+                        } catch (Exception e) {
+                            LOGGER.error("Got exception from paraphraser. Using the original document.", e);
+                        }
+                    }
+                    // If the generation and paraphrasing were successful
+                    if (document != null) {
+                        document.setDocumentURI("http://aksw.org/generated/" + counter);
+                        counter++;
+                        documents.add(document);
+                    }
+                }
             }
-            // If the generation and paraphrasing were successful
-            if (document != null) {
-                document.setDocumentURI("http://aksw.org/generated/" + counter);
-                counter++;
-                documents.add(document);
+            try {
+                Thread.sleep(WAITING_TIME_BETWEEN_DOCUMENTS);
+            } catch (InterruptedException e) {
             }
         }
 

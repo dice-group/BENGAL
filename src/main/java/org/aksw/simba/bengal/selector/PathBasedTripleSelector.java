@@ -106,6 +106,10 @@ public class PathBasedTripleSelector extends AbstractSelector {
             // get symmetric CBD
             if (resourceChanged) {
                 statements = getSummary(currentResource);
+                if (statements == null) {
+                    // there was an error
+                    return null;
+                }
                 if (statements.size() == 0) {
                     return result;
                 }
@@ -148,15 +152,5 @@ public class PathBasedTripleSelector extends AbstractSelector {
         } else {
             return getCBD(r, targetClasses, endpoint, graph);
         }
-    }
-
-    public static void main(String args[]) {
-        Set<String> classes = new HashSet<>();
-        classes.add("<http://dbpedia.org/ontology/Person>");
-        classes.add("<http://dbpedia.org/ontology/Place>");
-        classes.add("<http://dbpedia.org/ontology/Organisation>");
-        SimpleSummarySelector sss = new SimpleSummarySelector(classes, classes, "http://dbpedia.org/sparql", null);
-        sss.getNextStatements();
-        sss.getNextStatements();
     }
 }

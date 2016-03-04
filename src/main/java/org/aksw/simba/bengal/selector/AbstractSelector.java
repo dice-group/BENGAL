@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -33,6 +36,8 @@ import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
  * @author ngonga
  */
 public abstract class AbstractSelector implements TripleSelector {
+
+private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSelector.class);
 
     /**
      * Returns list of triples for a given resource and data source
@@ -109,7 +114,8 @@ public abstract class AbstractSelector implements TripleSelector {
                 m.add(qs.getResource("o"), p, res);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Exception while requesting CBD. Returning null.", e);
+            return null;
         } finally {
             qexec.close();
         }
@@ -174,7 +180,8 @@ public abstract class AbstractSelector implements TripleSelector {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Exception while requesting CBD. Returning null.", e);
+            return null;
         } finally {
             qexec.close();
         }
