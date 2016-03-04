@@ -5,31 +5,29 @@
  */
 package org.aksw.simba.bengal.verbalizer;
 
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Resource;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
-
-import com.hp.hpl.jena.rdf.model.Statement;
-import com.hp.hpl.jena.vocabulary.RDF;
-import com.hp.hpl.jena.vocabulary.RDFS;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.aksw.simba.bengal.selector.SimpleSummarySelector;
 import org.aksw.simba.bengal.selector.TripleSelector;
 import org.aksw.triple2nl.TripleConverter;
 import org.dllearner.kb.sparql.SparqlEndpoint;
 import org.dllearner.kb.sparql.SparqlQuery;
+
+import com.hp.hpl.jena.graph.Triple;
+import com.hp.hpl.jena.query.QuerySolution;
+import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.vocabulary.RDF;
+import com.hp.hpl.jena.vocabulary.RDFS;
 
 /**
  * A deterministic verbalizer which relies on the SemWeb2NL project.
@@ -41,23 +39,23 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
 
     TripleConverter converter;
     SparqlEndpoint endpoint;
-    public SemWeb2NLVerbalizer(SparqlEndpoint endpoint)
-    {
-        this.endpoint = endpoint; 
+
+    public SemWeb2NLVerbalizer(SparqlEndpoint endpoint) {
+        this.endpoint = endpoint;
         converter = new TripleConverter(this.endpoint);
     }
-    
+
     public Document generateDocument(List<Statement> triples) {
 
         String text = "";
 
-        //generate text
+        // generate text
         for (Statement s : triples) {
             Triple t = Triple.create(s.getSubject().asNode(), s.getPredicate().asNode(), s.getObject().asNode());
             text = text + converter.convertTripleToText(t) + ". ";
         }
-        text = text.substring(0, text.length()-1);
-        //annotate entities
+        text = text.substring(0, text.length() - 1);
+        // annotate entities
         Document document = new DocumentImpl(text);
         Set<Resource> resources = new HashSet<>();
         for (Statement s : triples) {
@@ -80,11 +78,12 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
             String labelQuery = "SELECT ?label WHERE {<" + resource + "> "
                     + "<http://www.w3.org/2000/01/rdf-schema#label> ?label. FILTER (lang(?label) = 'en')}";
 
-            // take care of graph issues. Only takes one graph. Seems like some sparql endpoint do
+            // take care of graph issues. Only takes one graph. Seems like some
+            // sparql endpoint do
             // not like the FROM option.
             ResultSet results = new SparqlQuery(labelQuery, endpoint).send();
 
-            //get label from knowledge base
+            // get label from knowledge base
             String label = null;
             QuerySolution soln;
             while (results.hasNext()) {
@@ -102,8 +101,7 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
     }
 
     private Document annotateDocument(Document document, Set<Resource> resources) {
-        for(Resource r: resources)
-        {
+        for (Resource r : resources) {
             document = annotateDocument(document, r);
         }
         return document;
@@ -113,9 +111,9 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
         String label = getEnglishLabel(resource.getURI());
         String text = document.getText();
 
-        //find all positions
-        ArrayList<Integer> positions = new ArrayList();
-        Pattern p = Pattern.compile(label);  // insert your pattern here
+        // find all positions
+        ArrayList<Integer> positions = new ArrayList<Integer>();
+        Pattern p = Pattern.compile(label); // insert your pattern here
         Matcher m = p.matcher(text);
         while (m.find()) {
             positions.add(m.start());

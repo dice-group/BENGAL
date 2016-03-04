@@ -42,10 +42,10 @@ public abstract class AbstractSelector implements TripleSelector {
      * @param graph
      * @return CBD of res
      */
-    List<Statement> getSymmetricCBD(Resource res, Set<String> targetClasses, String endpoint, String graph) {
-        List<Statement> statements = new ArrayList<>();
+    protected List<Statement> getSymmetricCBD(Resource res, Set<String> targetClasses, String endpoint, String graph) {
         Model m = ModelFactory.createDefaultModel();
         String sparqlQueryString = "";
+        QueryExecution qexec = null;
         try {
             if (targetClasses != null) {
                 if (targetClasses.isEmpty()) {
@@ -63,13 +63,10 @@ public abstract class AbstractSelector implements TripleSelector {
 
             System.out.println(sparqlQueryString);
             QueryFactory.create(sparqlQueryString);
-            QueryExecution qexec;
             if (graph != null) {
-                qexec = QueryExecutionFactory.sparqlService(
-                        endpoint, sparqlQueryString, graph);
+                qexec = QueryExecutionFactory.sparqlService(endpoint, sparqlQueryString, graph);
             } else {
-                qexec = QueryExecutionFactory.sparqlService(
-                        endpoint, sparqlQueryString);
+                qexec = QueryExecutionFactory.sparqlService(endpoint, sparqlQueryString);
             }
             ResultSet cbd = qexec.execSelect();
             while (cbd.hasNext()) {
@@ -100,11 +97,9 @@ public abstract class AbstractSelector implements TripleSelector {
             System.out.println(sparqlQueryString);
             QueryFactory.create(sparqlQueryString);
             if (graph != null) {
-                qexec = QueryExecutionFactory.sparqlService(
-                        endpoint, sparqlQueryString, graph);
+                qexec = QueryExecutionFactory.sparqlService(endpoint, sparqlQueryString, graph);
             } else {
-                qexec = QueryExecutionFactory.sparqlService(
-                        endpoint, sparqlQueryString);
+                qexec = QueryExecutionFactory.sparqlService(endpoint, sparqlQueryString);
             }
             cbd = qexec.execSelect();
             while (cbd.hasNext()) {
@@ -113,10 +108,10 @@ public abstract class AbstractSelector implements TripleSelector {
 
                 m.add(qs.getResource("o"), p, res);
             }
-            qexec.close();
-
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            qexec.close();
         }
 
         Map<Integer, Statement> map = new HashMap<>();
@@ -133,8 +128,8 @@ public abstract class AbstractSelector implements TripleSelector {
         }
         return result;
     }
-    
-        /**
+
+    /**
      * Returns list of triples for a given resource and data source
      *
      * @param res
@@ -142,10 +137,10 @@ public abstract class AbstractSelector implements TripleSelector {
      * @param graph
      * @return CBD of res
      */
-    List<Statement> getCBD(Resource res, Set<String> targetClasses, String endpoint, String graph) {
-        List<Statement> statements = new ArrayList<>();
+    protected List<Statement> getCBD(Resource res, Set<String> targetClasses, String endpoint, String graph) {
         Model m = ModelFactory.createDefaultModel();
         String sparqlQueryString = "";
+        QueryExecution qexec = null;
         try {
             if (targetClasses != null) {
                 if (targetClasses.isEmpty()) {
@@ -163,13 +158,10 @@ public abstract class AbstractSelector implements TripleSelector {
 
             System.out.println(sparqlQueryString);
             QueryFactory.create(sparqlQueryString);
-            QueryExecution qexec;
             if (graph != null) {
-                qexec = QueryExecutionFactory.sparqlService(
-                        endpoint, sparqlQueryString, graph);
+                qexec = QueryExecutionFactory.sparqlService(endpoint, sparqlQueryString, graph);
             } else {
-                qexec = QueryExecutionFactory.sparqlService(
-                        endpoint, sparqlQueryString);
+                qexec = QueryExecutionFactory.sparqlService(endpoint, sparqlQueryString);
             }
             ResultSet cbd = qexec.execSelect();
             while (cbd.hasNext()) {
@@ -181,10 +173,10 @@ public abstract class AbstractSelector implements TripleSelector {
                     m.add(res, p, qs.getResource("o"));
                 }
             }
-            qexec.close();
-
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            qexec.close();
         }
 
         Map<Integer, Statement> map = new HashMap<>();
@@ -201,16 +193,18 @@ public abstract class AbstractSelector implements TripleSelector {
         }
         return result;
     }
-    /** Sort statements by hash
+
+    /**
+     * Sort statements by hash
      * 
-     * @param statements Set of statements
+     * @param statements
+     *            Set of statements
      * @return Set of statements sorted by hash
      */
 
-    public List<Statement> sortStatementsByHash(Set<Statement> statements)
-    {
+    public List<Statement> sortStatementsByHash(Set<Statement> statements) {
         Map<Integer, Statement> map = new HashMap<>();
-        for (Statement s: statements) {
+        for (Statement s : statements) {
             map.put(s.hashCode(), s);
         }
         List<Integer> keys = new ArrayList<>(map.keySet());
@@ -221,13 +215,17 @@ public abstract class AbstractSelector implements TripleSelector {
         }
         return result;
     }
+
     /**
      * Get all resources that belong to the union of classes and sort them by
      * URI in desceding order
      *
-     * @param classes Set of classes for resources
-     * @param endpoint Endpoint from which the data is to be selected
-     * @param graph Graph for the endpoint
+     * @param classes
+     *            Set of classes for resources
+     * @param endpoint
+     *            Endpoint from which the data is to be selected
+     * @param graph
+     *            Graph for the endpoint
      * @return Sorted list of resources from the classes
      */
     public List<Resource> getResources(Set<String> classes, String endpoint, String graph) {
@@ -253,20 +251,24 @@ public abstract class AbstractSelector implements TripleSelector {
         Query sparqlQuery = QueryFactory.create(query, Syntax.syntaxARQ);
 
         QueryEngineHTTP httpQuery = new QueryEngineHTTP(endpoint, sparqlQuery);
-        // execute a Select query
-        ResultSet results = httpQuery.execSelect();
         List<Resource> result = new ArrayList<>();
-        while (results.hasNext()) {
-            QuerySolution solution = results.next();
-            System.out.println(solution);
-            // get the value of the variables in the select clause
-            try {
-                Resource r = solution.getResource("x");
-                result.add(r);
-                System.out.println(r);
-            } catch (Exception e) {
-                e.printStackTrace();
+        // execute a Select query
+        try {
+            ResultSet results = httpQuery.execSelect();
+            while (results.hasNext()) {
+                QuerySolution solution = results.next();
+                System.out.println(solution);
+                // get the value of the variables in the select clause
+                try {
+                    Resource r = solution.getResource("x");
+                    result.add(r);
+                    System.out.println(r);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
+        } finally {
+            httpQuery.close();
         }
         return result;
     }

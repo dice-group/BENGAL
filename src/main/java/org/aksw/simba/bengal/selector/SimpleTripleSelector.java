@@ -14,6 +14,7 @@ import com.hp.hpl.jena.rdf.model.Statement;
  * Implements a triple selector that describes a sinle entity in one sentence.
  * @author ngonga
  */
+@Deprecated
 public class SimpleTripleSelector implements TripleSelector{
 
     int benchmarkSize;

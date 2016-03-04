@@ -2,5 +2,6 @@ target
 .classpath
 .project
 .settings
-log/
+log
 test_output*
+bengal*.ttl
