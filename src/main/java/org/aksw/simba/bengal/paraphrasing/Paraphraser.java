@@ -5,7 +5,11 @@
  */
 package org.aksw.simba.bengal.paraphrasing;
 
+
 import org.aksw.gerbil.transfer.nif.Document;
+
+import com.memetix.mst.language.Language;
+import com.memetix.mst.translate.Translate;
 
 /**
  * A paraphraser rewrites the content of a document to a semantically equivalent 
@@ -13,6 +17,21 @@ import org.aksw.gerbil.transfer.nif.Document;
  * paraphrasing went wrong.
  * @author ngonga
  */
-public interface Paraphraser {
-    public Document getParaphrase (Document doc);
+public class Paraphraser {
+    public Document getParaphrase (Document doc) throws Exception{
+        Translate.setClientId("Moussallem");
+        Translate.setClientSecret("Sq2m3JmTIcdoA5diD2Mw4Clh6sNpoRp5e4uxcXpMwT8=");
+        String text = doc.getText();
+        
+        
+        String translatedText = Translate.execute(text, Language.ENGLISH, Language.ITALIAN);
+        String paraphrases = Translate.execute(translatedText, Language.ITALIAN, Language.ENGLISH);
+ 
+        doc.setText(paraphrases);
+        return doc;
+    
+    }
+    
+    
+    
 }
