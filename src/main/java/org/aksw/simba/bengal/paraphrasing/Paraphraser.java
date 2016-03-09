@@ -6,6 +6,7 @@
 package org.aksw.simba.bengal.paraphrasing;
 
 
+import com.hp.hpl.jena.rdf.model.Resource;
 import java.util.List;
 
 import org.aksw.gerbil.transfer.nif.Document;
@@ -16,6 +17,11 @@ import org.slf4j.LoggerFactory;
 
 import com.memetix.mst.language.Language;
 import com.memetix.mst.translate.Translate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.aksw.gerbil.transfer.nif.data.NamedEntity;
 
 /**
  * A paraphraser rewrites the content of a document to a semantically equivalent 
@@ -36,12 +42,38 @@ public class Paraphraser {
         String translatedText = Translate.execute(text, Language.ENGLISH, Language.ITALIAN);
         String paraphrases = Translate.execute(translatedText, Language.ITALIAN, Language.ENGLISH);
 
-        doc.setText(paraphrases);
-        Document newDoc = new DocumentImpl(paraphrases, doc.getDocumentURI(), doc.getMarkings());
+        
+        Document newDoc = new DocumentImpl(paraphrases, doc.getDocumentURI());
+        
+        String label = newDoc.getDocumentURI();
+        String newText = newDoc.getText();
+
+        // find all positions
+        ArrayList<Integer> positions = new ArrayList<Integer>();
+        Pattern p = Pattern.compile(label); // insert your pattern here
+        Matcher m = p.matcher(newText);
+        while (m.find()) {
+            positions.add(m.start());
+        }
+
+        for (int index : positions) {
+            newDoc.addMarking(new NamedEntity(index, label.length(), newDoc.getDocumentURI()));
+        }        
+        
+        
         // Update named entities
-        List<Span> spans = newDoc.getMarkings(Span.class);
+        List<Span> spans = doc.getMarkings(Span.class);
+        List<Span> newSpans = newDoc.getMarkings(Span.class);
+        
         int pos;
         for (Span span : spans) {
+            String comp = span.toString();
+            for (Span span2 : newSpans) {
+                
+                    
+                }
+                
+            }
             // TODO search the position in the old text
             // TODO Update the position in the new text
             // TODO if position search fails, return the original document and log a message like:
@@ -49,10 +81,5 @@ public class Paraphraser {
             return doc;
         }
  
-        return doc;
-    
     }
     
-    
-    
-}
