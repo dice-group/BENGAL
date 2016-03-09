@@ -27,7 +27,7 @@ public class BingParaphraseService implements ParaphraseService {
             return null;
         }
         BingParaphraseService service = null;
-        if (properties.contains(BING_CLIENT_ID_KEY) && properties.contains(BING_CLIENT_SECRET_KEY)) {
+        if (properties.containsKey(BING_CLIENT_ID_KEY) && properties.containsKey(BING_CLIENT_SECRET_KEY)) {
             Translate.setClientId(properties.getProperty(BING_CLIENT_ID_KEY));
             Translate.setClientSecret(properties.getProperty(BING_CLIENT_SECRET_KEY));
             service = new BingParaphraseService();

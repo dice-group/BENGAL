@@ -48,7 +48,7 @@ public class BengalController {
     private static final int MAX_SENTENCE = 5;
     private static final boolean USE_PATH_PATTERN = true;
     private static final boolean USE_SYMMETRIC_CBD = false;
-    private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 1000;
+    private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 500;
 
     public static void main(String args[]) {
         String corpusName = "bengal_" + (USE_PATH_PATTERN ? "path" : (USE_SYMMETRIC_CBD ? "sym" : "star")) + "_"
@@ -119,6 +119,7 @@ public class BengalController {
                     }
                     // If the generation and paraphrasing were successful
                     if (document != null) {
+                        LOGGER.info("Created document #" + counter);
                         document.setDocumentURI("http://aksw.org/generated/" + counter);
                         counter++;
                         documents.add(document);

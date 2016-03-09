@@ -44,11 +44,12 @@ public class ParaphraserImpl implements Paraphraser, Comparator<NamedEntity> {
         String label;
         int pos;
         for (NamedEntity ne : originalNes) {
-            label = text.substring(ne.getStartPosition(), ne.getLength());
-            pos = 0;
+            label = text.substring(ne.getStartPosition(), ne.getStartPosition() + ne.getLength());
+            pos = -ne.getLength();
             do {
-                // search the position in the new text
-                pos = paraphrases.indexOf(label, pos);
+                // search the position in the new text (make sure that we start
+                // behind the position we might have found before)
+                pos = paraphrases.indexOf(label, pos + ne.getLength());
                 if (pos < 0) {
                     // the position search failed
                     LOGGER.warn(
@@ -63,6 +64,7 @@ public class ParaphraserImpl implements Paraphraser, Comparator<NamedEntity> {
             } while (BitSet.intersectionCount(blockedPositions, currentPositions) > 0);
             // Update the position in the new text
             newDoc.addMarking(new NamedEntity(pos, ne.getLength(), ne.getUris()));
+            blockedPositions.or(currentPositions);
         }
         return newDoc;
     }

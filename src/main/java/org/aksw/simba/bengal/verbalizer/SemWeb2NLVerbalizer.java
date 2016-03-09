@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
@@ -23,6 +21,7 @@ import org.dllearner.kb.sparql.SparqlQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.carrotsearch.hppc.BitSet;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
@@ -50,25 +49,44 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
     }
 
     public Document generateDocument(List<Statement> triples) {
-
-        String text = "";
-
-        // generate text
+        // generate sub documents
+        List<Document> subDocs = new ArrayList<Document>(triples.size());
+        Document document;
         for (Statement s : triples) {
             Triple t = Triple.create(s.getSubject().asNode(), s.getPredicate().asNode(), s.getObject().asNode());
-            text = text + converter.convertTripleToText(t) + ". ";
-        }
-        text = text.substring(0, text.length() - 1);
-        // annotate entities
-        Document document = new DocumentImpl(text);
-        Set<Resource> resources = new HashSet<>();
-        for (Statement s : triples) {
-            resources.add(s.getSubject());
-            if (s.getObject().isResource()) {
-                resources.add(s.getObject().asResource());
+            document = new DocumentImpl(converter.convertTripleToText(t));
+            if (!annotateDocument(document, s)) {
+                LOGGER.warn("One of the triples couldn't be translated. Returning null. triple={}", s);
+                return null;
             }
+            subDocs.add(document);
         }
-        return annotateDocument(document, resources);
+        // generate the document containing all the sub documents
+        document = new DocumentImpl();
+        StringBuilder textBuilder = new StringBuilder();
+        for (Document subDoc : subDocs) {
+            if (textBuilder.length() > 0) {
+                textBuilder.append(' ');
+            }
+            // add the entities
+            for (NamedEntity ne : subDoc.getMarkings(NamedEntity.class)) {
+                ne.setStartPosition(ne.getStartPosition() + textBuilder.length());
+                document.addMarking(ne);
+            }
+            // append the text
+            textBuilder.append(subDoc.getText());
+            textBuilder.append('.');
+        }
+        document.setText(textBuilder.toString());
+        return document;
+    }
+
+    private boolean annotateDocument(Document document, Statement s) {
+        if (s.getObject().isResource()) {
+            return annotateDocument(document, s.getSubject(), s.getObject().asResource());
+        } else {
+            return annotateDocument(document, s.getSubject());
+        }
     }
 
     private String getEnglishLabel(String resource) {
@@ -104,38 +122,72 @@ public class SemWeb2NLVerbalizer implements Verbalizer {
         return null;
     }
 
-    private Document annotateDocument(Document document, Set<Resource> resources) {
-        for (Resource r : resources) {
-            document = annotateDocument(document, r);
-            if(document == null) {
-                return null;
-            }
-        }
-        return document;
-    }
-
-    private Document annotateDocument(Document document, Resource resource) {
+    private boolean annotateDocument(Document document, Resource resource) {
         String label = getEnglishLabel(resource.getURI());
         if (label == null) {
             LOGGER.warn("Couldn't find an English label for " + resource.toString() + ". Returning null.");
-            return null;
+            return false;
         }
         String text = document.getText();
-
-        // find all positions
-        ArrayList<Integer> positions = new ArrayList<Integer>();
         int pos = text.indexOf(label);
-        while (pos >= 0) {
-            positions.add(pos);
-            pos += label.length();
-            pos = text.indexOf(label, pos);
+        if (pos < 0) {
+            LOGGER.warn("Couldn't find the label \"{}\" inside the given text \"{}\". Returning false.", label, text);
+            return false;
         }
+        document.addMarking(new NamedEntity(pos, label.length(), resource.getURI()));
+        return true;
+    }
 
-        for (int index : positions) {
-            document.addMarking(new NamedEntity(index, label.length(), resource.getURI()));
+    private boolean annotateDocument(Document document, Resource subject, Resource object) {
+        // we have to find out which label is the longer one and start with it
+        String label1 = getEnglishLabel(subject.getURI());
+        if (label1 == null) {
+            LOGGER.warn("Couldn't find an English label for " + subject.toString() + ". Returning null.");
+            return false;
         }
-
-        return document;
+        String label2 = getEnglishLabel(object.getURI());
+        if (label2 == null) {
+            LOGGER.warn("Couldn't find an English label for " + object.toString() + ". Returning null.");
+            return false;
+        }
+        Resource r1, r2;
+        if (label1.length() > label2.length()) {
+            r1 = subject;
+            r2 = object;
+        } else {
+            String temp = label1;
+            label1 = label2;
+            label2 = temp;
+            r2 = subject;
+            r1 = object;
+        }
+        // Now, label1 is the longer label and r1 is its resource
+        // Let's find the larger label inside the text
+        String text = document.getText();
+        int pos1 = text.indexOf(label1);
+        if (pos1 < 0) {
+            LOGGER.warn("Couldn't find the label \"{}\" inside the given text \"{}\". Returning false.", label1, text);
+            return false;
+        }
+        document.addMarking(new NamedEntity(pos1, label1.length(), r1.getURI()));
+        // Let's find the smaller label inside the text. We have to make sure
+        // that it is not inside of the larger label's marking.
+        BitSet blockedPositions = new BitSet(text.length());
+        blockedPositions.set(pos1, pos1 + label1.length());
+        int pos2 = -label2.length();
+        do {
+            pos2 = text.indexOf(label2, pos2 + label2.length());
+            while (pos2 < 0) {
+                LOGGER.warn("Couldn't find the label \"{}\" inside the given text \"{}\". Returning false.", label1,
+                        text);
+                return false;
+            }
+            // repeat while the position found is inside the marking of label1.
+            // Since label1 is larger, we can simply check whether the beginning
+            // or the end of label2 is blocked by the first label.
+        } while (blockedPositions.get(pos2) || blockedPositions.get(pos2 + label2.length()));
+        document.addMarking(new NamedEntity(pos2, label2.length(), r2.getURI()));
+        return true;
     }
 
     public static void main(String args[]) {
