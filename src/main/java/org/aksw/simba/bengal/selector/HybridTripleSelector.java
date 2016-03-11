@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 
@@ -19,6 +22,8 @@ import com.hp.hpl.jena.rdf.model.Statement;
  *
  */
 public class HybridTripleSelector extends AbstractSelector {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(HybridTripleSelector.class);
 
     private Set<String> sourceClasses;
     private List<Resource> resources;
@@ -95,6 +100,7 @@ public class HybridTripleSelector extends AbstractSelector {
         List<Statement> statements = null;
         Statement statement;
         boolean resourceChanged = true;
+        int retries = 0, maxRetries = 10;
         while (result.size() < size) {
             // get symmetric CBD
             if (resourceChanged) {
@@ -104,6 +110,7 @@ public class HybridTripleSelector extends AbstractSelector {
                     return null;
                 }
                 if (statements.size() == 0) {
+                    System.out.println(result);
                     return result;
                 }
                 resourceChanged = false;
@@ -121,11 +128,19 @@ public class HybridTripleSelector extends AbstractSelector {
                 if (statement.getObject().isResource()
                         && (!visitedResources.contains(statement.getObject().asResource()))) {
                     result.add(statement);
+                    retries = 0;
                     visitedResources.add(statement.getObject().asResource());
                     // Choose whether we should go on with the path pattern
                     if (r.nextBoolean()) {
                         currentResource = statement.getObject().asResource();
                         resourceChanged = true;
+                    }
+                } else {
+                    ++retries;
+                    if(retries > maxRetries) {
+                        LOGGER.warn("After {} retries I couldn't select a matching statement. Returning the statements I selected so far.", maxRetries);
+                        System.out.println(result);
+                        return result;
                     }
                 }
             }

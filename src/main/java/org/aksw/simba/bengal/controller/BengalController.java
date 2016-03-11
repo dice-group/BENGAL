@@ -50,7 +50,7 @@ public class BengalController {
     private static final long SEED = 20;
     private static final int MAX_SENTENCE = 5;
     private static final SelectorType SELECTOR_TYPE = SelectorType.HYBRID;
-    private static final boolean USE_PARAPHRASING = false;
+    private static final boolean USE_PARAPHRASING = true;
     private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 500;
 
     public static void main(String args[]) {
