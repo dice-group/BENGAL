@@ -10,19 +10,21 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 
 /**
- * Simple triple selector that selects statements based on a random path.
+ * This triple selector is a hybrid approach based on the
+ * {@link SimpleSummarySelector} and the {@link PathBasedTripleSelector}. It
+ * randomly selects whether it should follow the star or the path pattern to
+ * select the next statement that is added to the selected triples.
  * 
  * @author Michael R&ouml;der (roeder@informatik.uni-leipzig.de)
  *
  */
-public class PathBasedTripleSelector extends AbstractSelector {
+public class HybridTripleSelector extends AbstractSelector {
 
     private Set<String> sourceClasses;
     private List<Resource> resources;
     private Random r = new Random(20);
     private int minSize = 1;
     private int maxSize = 5;
-    // private boolean useSymmetricCbd = false;
 
     /**
      * Constructor
@@ -40,7 +42,7 @@ public class PathBasedTripleSelector extends AbstractSelector {
      * @param maxSize
      *            Maximal size of summary
      */
-    public PathBasedTripleSelector(Set<String> sourceClasses, Set<String> targetClasses, String endpoint, String graph,
+    public HybridTripleSelector(Set<String> sourceClasses, Set<String> targetClasses, String endpoint, String graph,
             int minSize, int maxSize, long seed) {
         super(targetClasses, endpoint, graph);
         this.sourceClasses = sourceClasses;
@@ -50,7 +52,6 @@ public class PathBasedTripleSelector extends AbstractSelector {
             maxSize = minSize + 1;
         }
         this.maxSize = maxSize;
-        // this.useSymmetricCbd = useSymmetricCbd;
         this.r = new Random(seed);
     }
 
@@ -66,8 +67,7 @@ public class PathBasedTripleSelector extends AbstractSelector {
      * @param graph
      *            Graph to query (null if none)
      */
-    public PathBasedTripleSelector(Set<String> sourceClasses, Set<String> targetClasses, String endpoint,
-            String graph) {
+    public HybridTripleSelector(Set<String> sourceClasses, Set<String> targetClasses, String endpoint, String graph) {
         super(targetClasses, endpoint, graph);
         this.sourceClasses = sourceClasses;
         resources = null;
@@ -82,7 +82,7 @@ public class PathBasedTripleSelector extends AbstractSelector {
         if (resources == null) {
             resources = getResources(sourceClasses);
         }
-        // pick a random length for the path
+        // pick a random length for the result list
         int size = minSize + r.nextInt(maxSize - minSize + 1);
         List<Statement> result = new ArrayList<>(size);
         Set<Resource> visitedResources = new HashSet<Resource>();
@@ -121,9 +121,12 @@ public class PathBasedTripleSelector extends AbstractSelector {
                 if (statement.getObject().isResource()
                         && (!visitedResources.contains(statement.getObject().asResource()))) {
                     result.add(statement);
-                    currentResource = statement.getObject().asResource();
-                    visitedResources.add(currentResource);
-                    resourceChanged = true;
+                    visitedResources.add(statement.getObject().asResource());
+                    // Choose whether we should go on with the path pattern
+                    if (r.nextBoolean()) {
+                        currentResource = statement.getObject().asResource();
+                        resourceChanged = true;
+                    }
                 }
             }
         }

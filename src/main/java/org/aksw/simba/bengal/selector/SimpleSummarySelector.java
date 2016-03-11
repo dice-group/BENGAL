@@ -20,14 +20,10 @@ import com.hp.hpl.jena.rdf.model.Statement;
 public class SimpleSummarySelector extends AbstractSelector {
 
     private Set<String> sourceClasses;
-    private Set<String> targetClasses;
-    private String endpoint;
-    private String graph;
     private List<Resource> resources;
     private Random r = new Random(20);
     private int minSize = 1;
     private int maxSize = 5;
-    private boolean useSymmetricCbd = false;
 
     /**
      * Constructor
@@ -47,17 +43,14 @@ public class SimpleSummarySelector extends AbstractSelector {
      */
     public SimpleSummarySelector(Set<String> sourceClasses, Set<String> targetClasses, String endpoint, String graph,
             int minSize, int maxSize, long seed, boolean useSymmetricCbd) {
+        super(targetClasses, endpoint, graph, useSymmetricCbd);
         this.sourceClasses = sourceClasses;
-        this.targetClasses = targetClasses;
-        this.endpoint = endpoint;
-        this.graph = graph;
         resources = null;
         this.minSize = minSize;
         if (maxSize < minSize) {
             maxSize = minSize + 1;
         }
         this.maxSize = maxSize;
-        this.useSymmetricCbd = useSymmetricCbd;
         this.r = new Random(seed);
     }
 
@@ -74,10 +67,8 @@ public class SimpleSummarySelector extends AbstractSelector {
      *            Graph to query (null if none)
      */
     public SimpleSummarySelector(Set<String> sourceClasses, Set<String> targetClasses, String endpoint, String graph) {
+        super(targetClasses, endpoint, graph);
         this.sourceClasses = sourceClasses;
-        this.targetClasses = targetClasses;
-        this.endpoint = endpoint;
-        this.graph = graph;
         resources = null;
     }
 
@@ -88,7 +79,7 @@ public class SimpleSummarySelector extends AbstractSelector {
      */
     public List<Statement> getNextStatements() {
         if (resources == null) {
-            resources = getResources(sourceClasses, endpoint, graph);
+            resources = getResources(sourceClasses);
         }
         int counter = Math.abs(r.nextInt() % resources.size());
         // get symmetric CBD
@@ -110,22 +101,6 @@ public class SimpleSummarySelector extends AbstractSelector {
         }
         System.out.println(result);
         return sortStatementsByHash(result);
-    }
-
-    /**
-     * Gets a set of statements that summarize a resource r
-     * 
-     * @param r
-     *            A resource
-     * @return Summary (some CBD)
-     */
-    public List<Statement> getSummary(Resource r) {
-        // one can use symmetric cbds here as well
-        if (useSymmetricCbd) {
-            return getSymmetricCBD(r, targetClasses, endpoint, graph);
-        } else {
-            return getCBD(r, targetClasses, endpoint, graph);
-        }
     }
 
     public static void main(String args[]) {

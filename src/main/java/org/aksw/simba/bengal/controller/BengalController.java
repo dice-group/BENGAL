@@ -20,10 +20,13 @@ import org.aksw.gerbil.io.nif.NIFWriter;
 import org.aksw.gerbil.io.nif.impl.TurtleNIFParser;
 import org.aksw.gerbil.io.nif.impl.TurtleNIFWriter;
 import org.aksw.gerbil.transfer.nif.Document;
+import org.aksw.simba.bengal.paraphrasing.BingParaphraseService;
+import org.aksw.simba.bengal.paraphrasing.ParaphraseService;
 import org.aksw.simba.bengal.paraphrasing.Paraphraser;
-import org.aksw.simba.bengal.selector.PathBasedTripleSelector;
-import org.aksw.simba.bengal.selector.SimpleSummarySelector;
+import org.aksw.simba.bengal.paraphrasing.ParaphraserImpl;
 import org.aksw.simba.bengal.selector.TripleSelector;
+import org.aksw.simba.bengal.selector.TripleSelectorFactory;
+import org.aksw.simba.bengal.selector.TripleSelectorFactory.SelectorType;
 import org.aksw.simba.bengal.verbalizer.SemWeb2NLVerbalizer;
 import org.aksw.simba.bengal.verbalizer.Verbalizer;
 import org.apache.commons.io.IOUtils;
@@ -46,12 +49,31 @@ public class BengalController {
     private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 100;
     private static final long SEED = 20;
     private static final int MAX_SENTENCE = 5;
-    private static final boolean USE_PATH_PATTERN = true;
-    private static final boolean USE_SYMMETRIC_CBD = false;
+    private static final SelectorType SELECTOR_TYPE = SelectorType.HYBRID;
+    private static final boolean USE_PARAPHRASING = false;
     private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 500;
 
     public static void main(String args[]) {
-        String corpusName = "bengal_" + (USE_PATH_PATTERN ? "path" : (USE_SYMMETRIC_CBD ? "sym" : "star")) + "_"
+        String typeSubString = "";
+        switch (SELECTOR_TYPE) {
+        case STAR: {
+            typeSubString = "star";
+            break;
+        }
+        case HYBRID: {
+            typeSubString = "hybrid";
+            break;
+        }
+        case PATH: {
+            typeSubString = "path";
+            break;
+        }
+        case SIM_STAR: {
+            typeSubString = "sym";
+            break;
+        }
+        }
+        String corpusName = "bengal_" + typeSubString + "_" + (USE_PARAPHRASING ? "para_" : "")
                 + Integer.toString(DEFAULT_NUMBER_OF_DOCUMENTS) + ".ttl";
         BengalController.generateCorpus(new HashMap<String, String>(), "http://dbpedia.org/sparql", corpusName);
         // This is just to check whether the created documents make sense
@@ -78,16 +100,15 @@ public class BengalController {
         classes.add("<http://dbpedia.org/ontology/Place>");
         classes.add("<http://dbpedia.org/ontology/Organisation>");
 
-        TripleSelector tripleSelector;
-        if (USE_PATH_PATTERN) {
-            tripleSelector = new PathBasedTripleSelector(classes, classes, endpoint, null, 1, MAX_SENTENCE, SEED,
-                    false);
-        } else {
-            tripleSelector = new SimpleSummarySelector(classes, classes, endpoint, null, 1, MAX_SENTENCE, SEED,
-                    USE_SYMMETRIC_CBD);
-        }
+        TripleSelectorFactory factory = new TripleSelectorFactory();
+        TripleSelector tripleSelector = factory.create(SELECTOR_TYPE, classes, classes, endpoint, null, 1, MAX_SENTENCE,
+                SEED);
         Verbalizer verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia());
+        ParaphraseService paraService = BingParaphraseService.create();
         Paraphraser paraphraser = null;
+        if (paraService != null) {
+            paraphraser = new ParaphraserImpl(paraService);
+        }
 
         // Get the number of documents from the parameters
         int numberOfDocuments = DEFAULT_NUMBER_OF_DOCUMENTS;

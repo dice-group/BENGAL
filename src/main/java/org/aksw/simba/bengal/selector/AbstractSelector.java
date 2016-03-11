@@ -6,6 +6,7 @@
 package org.aksw.simba.bengal.selector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.carrotsearch.hppc.IntObjectOpenHashMap;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
 import com.hp.hpl.jena.query.QueryExecutionFactory;
@@ -37,7 +39,25 @@ import com.hp.hpl.jena.sparql.engine.http.QueryEngineHTTP;
  */
 public abstract class AbstractSelector implements TripleSelector {
 
-private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSelector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSelector.class);
+
+    private Set<String> targetClasses;
+    private String endpoint;
+    private String graph;
+    private boolean useSymmetricCbd = false;
+
+    public AbstractSelector(Set<String> targetClasses, String endpoint, String graph) {
+        this.targetClasses = targetClasses;
+        this.endpoint = endpoint;
+        this.graph = graph;
+    }
+
+    public AbstractSelector(Set<String> targetClasses, String endpoint, String graph, boolean useSymmetricCbd) {
+        this.useSymmetricCbd = useSymmetricCbd;
+        this.targetClasses = targetClasses;
+        this.endpoint = endpoint;
+        this.graph = graph;
+    }
 
     /**
      * Returns list of triples for a given resource and data source
@@ -120,6 +140,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSelector.cl
             qexec.close();
         }
 
+        // sort the statements
         Map<Integer, Statement> map = new HashMap<>();
         StmtIterator iter = m.listStatements();
         while (iter.hasNext()) {
@@ -186,17 +207,35 @@ private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSelector.cl
             qexec.close();
         }
 
-        Map<Integer, Statement> map = new HashMap<>();
-        StmtIterator iter = m.listStatements();
-        while (iter.hasNext()) {
-            Statement s = iter.next();
+        return sortStatementsByHash(m.listStatements());
+    }
+
+    /**
+     * Sort statements by hash
+     * 
+     * @param stmtIterator
+     *            Iterator which is used to get the statements
+     * @return List of statements sorted by hash
+     */
+    protected List<Statement> sortStatementsByHash(StmtIterator stmtIterator) {
+        IntObjectOpenHashMap<Statement> map = new IntObjectOpenHashMap<Statement>();
+        Statement s;
+        while (stmtIterator.hasNext()) {
+            s = stmtIterator.next();
             map.put(s.hashCode(), s);
         }
-        List<Integer> keys = new ArrayList<>(map.keySet());
-        Collections.sort(keys);
-        List<Statement> result = new ArrayList<>();
-        for (int k : keys) {
-            result.add(map.get(k));
+        int keys[] = new int[map.assigned];
+        int pos = 0;
+        for (int i = 0; i < map.allocated.length; ++i) {
+            if (map.allocated[i]) {
+                keys[pos] = map.keys[i];
+                ++pos;
+            }
+        }
+        Arrays.sort(keys);
+        List<Statement> result = new ArrayList<Statement>(keys.length);
+        for (int i = 0; i < keys.length; ++i) {
+            result.add(map.get(keys[i]));
         }
         return result;
     }
@@ -206,19 +245,25 @@ private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSelector.cl
      * 
      * @param statements
      *            Set of statements
-     * @return Set of statements sorted by hash
+     * @return List of statements sorted by hash
      */
-
-    public List<Statement> sortStatementsByHash(Set<Statement> statements) {
-        Map<Integer, Statement> map = new HashMap<>();
+    protected List<Statement> sortStatementsByHash(Set<Statement> statements) {
+        IntObjectOpenHashMap<Statement> map = new IntObjectOpenHashMap<Statement>(2 * statements.size());
         for (Statement s : statements) {
             map.put(s.hashCode(), s);
         }
-        List<Integer> keys = new ArrayList<>(map.keySet());
-        Collections.sort(keys);
-        List<Statement> result = new ArrayList<>();
-        for (int k : keys) {
-            result.add(map.get(k));
+        int keys[] = new int[map.assigned];
+        int pos = 0;
+        for (int i = 0; i < map.allocated.length; ++i) {
+            if (map.allocated[i]) {
+                keys[pos] = map.keys[i];
+                ++pos;
+            }
+        }
+        Arrays.sort(keys);
+        List<Statement> result = new ArrayList<Statement>(keys.length);
+        for (int i = 0; i < keys.length; ++i) {
+            result.add(map.get(keys[i]));
         }
         return result;
     }
@@ -235,7 +280,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSelector.cl
      *            Graph for the endpoint
      * @return Sorted list of resources from the classes
      */
-    public List<Resource> getResources(Set<String> classes, String endpoint, String graph) {
+    protected List<Resource> getResources(Set<String> classes) {
         String query = "";
         if (classes != null) {
             if (classes.isEmpty()) {
@@ -277,6 +322,43 @@ private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSelector.cl
         } finally {
             httpQuery.close();
         }
+        sortResourcesByHash(result);
         return result;
+    }
+
+    protected void sortResourcesByHash(List<Resource> resources) {
+        IntObjectOpenHashMap<Resource> map = new IntObjectOpenHashMap<Resource>(2 * resources.size());
+        for (Resource r : resources) {
+            map.put(r.hashCode(), r);
+        }
+        int keys[] = new int[map.assigned];
+        int pos = 0;
+        for (int i = 0; i < map.allocated.length; ++i) {
+            if (map.allocated[i]) {
+                keys[pos] = map.keys[i];
+                ++pos;
+            }
+        }
+        Arrays.sort(keys);
+        resources.clear();
+        for (int i = 0; i < keys.length; ++i) {
+            resources.add(map.get(keys[i]));
+        }
+    }
+
+    /**
+     * Gets a set of statements that summarize a resource r
+     * 
+     * @param r
+     *            A resource
+     * @return Summary (some CBD)
+     */
+    protected List<Statement> getSummary(Resource r) {
+        // one can use symmetric cbds here as well
+        if (useSymmetricCbd) {
+            return getSymmetricCBD(r, targetClasses, endpoint, graph);
+        } else {
+            return getCBD(r, targetClasses, endpoint, graph);
+        }
     }
 }
