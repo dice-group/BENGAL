@@ -6,6 +6,8 @@
 package org.aksw.simba.bengal.paraphrasing;
 
 import edu.stanford.nlp.tagger.maxent.MaxentTagger;
+import simplenlg.features.Feature;
+import simplenlg.framework.NLGElement;
 import simplenlg.framework.NLGFactory;
 import simplenlg.lexicon.Lexicon;
 import simplenlg.phrasespec.SPhraseSpec;
@@ -13,49 +15,40 @@ import simplenlg.realiser.english.Realiser;
 
 /**
  *
- * @author aksw
+ * @author DiegoMoussallem
  */
-public class newParaphraser {
+public class newParaphraser implements ParaphraseService{
     
-    public static void main(String args[]) throws Exception {
-        
-                          int value = 0;
+    @Override
+    public String paraphrase(String originalText) {
+                    int value = 0;
                     Lexicon lexicon = Lexicon.getDefaultLexicon();
                     NLGFactory nlgFactory = new NLGFactory(lexicon);
                     Realiser realiser = new Realiser(lexicon);
                     MaxentTagger tagger = new MaxentTagger("models/english-left3words-distsim.tagger");
-                     SPhraseSpec s = nlgFactory.createClause();
+                    SPhraseSpec s = nlgFactory.createClause();
  
-                    String sample = "Tartar's mouth country is Azerbaijan."
-                            //+ "Azerbaijan's leader is Ilham Aliyev."
-                           // + "Ilham Aliyev's successor is Artur Rasizade."
-                           // + "Artur Rasizade's party is New Azerbaijan Party."
-                            + "New Azerbaijan Party's headquarter is Baku.";
-                    
-                    //NLGElement s1 = nlgFactory.createSentence(sample);
+                    NLGElement s1 = nlgFactory.createSentence(originalText);
                     
                     
-                    String results = null;
-                    String[] sentences = sample.split("\\.");
-                    String[] paraphrases = sample.split("\\.");
-                    String[] Phrase = null;
-                    String[] Pos = null;
-                    
+                    String[] sentences = originalText.split("[.]+");
+                    int vSentences = 0;
                     for (int i = 0; i < sentences.length; i++) {
-                    String tagged = tagger.tagString(sentences[i]);
-                    System.out.println(tagged);
-                    paraphrases[i] = tagged;
-                    Phrase = sentences[i].split("[,;. ]+");
-                    Pos = paraphrases[i].split("[,;. ]+");
+                        vSentences = vSentences + 1;
+                        
+                    String[] Phrase = sentences[i].split("[,;. ]+");
+                    String[] Pos = sentences[i].split("[,;. ]+");
+                    
+
+                    for (int k = 0; k < Pos.length; k++) {
+                        Pos[k] = tagger.tagString(Pos[k]);
                     }
- 
+                    
                     for (int k = 0; k < Pos.length; k++) {
                            if(Pos[k].contains("_V")){
                                 value = k;
                            }
-                   
-                    System.out.println(value);
-                    System.out.println(Phrase[4]);
+                    }
                     
                     s.setVerb(Phrase[value]);
                     
@@ -63,11 +56,11 @@ public class newParaphraser {
                                 if (Phrase.length > 1) {
                                     sb.append(Phrase[0]);
                                         for (int w = 1; w < value; w++) {
-                                            sb.append(" ").append(Phrase[w]); }
+                                           sb.append(" ").append(Phrase[w]); }
                     }
                        s.setSubject(sb.toString());
                        
-                        //System.out.println(s.getVerb());
+
                        
                             StringBuilder sc = new StringBuilder();
                                 if (Phrase.length > 1) {
@@ -76,26 +69,51 @@ public class newParaphraser {
                                             sc.append(" ").append(Phrase[z]); }
                     }
                        s.setObject(sc.toString());
-                    
-                      // System.out.println(s.getObject());
-                       
-                       
-        
-         //String s1 = "The monkey was chased by Mary.";
-        
-       // s2.setFeature(Feature.TENSE, Tense.PRESENT); //Tense Exchange
-        
-         // s.setFeature(Feature.CONJUNCTION, s1);
-        //s2.setFeature(Feature.NEGATED, true); //To negate the sentences based on VERBs.
        
-        //s2.setFeature(Feature.PERFECT, true);
-        //s.setFeature(Feature.PASSIVE, true);
-        
+        s.setFeature(Feature.PERFECT, true);
+        s.setFeature(Feature.PASSIVE, true);
         String output = realiser.realiseSentence(s);
-       // System.out.println(output);
         
+        String[] paraphraser = output.split("[,; ]+");
+        int find = 0;
         
-       
+            for (int k = 0; k < paraphraser.length; k++) {
+                if(paraphraser[k].equals("been")){
+                    find++;
+                    if(find>1){
+                    paraphraser[k] = paraphraser[k].replace("been", "");
                 }
+                }
+                if(paraphraser[k].equals("by")){
+                    find++;
+                    if(find>1){
+                    paraphraser[k] = paraphraser[k].replace("by", "the");
+                }
+                }
+                    }
+            
+            StringBuilder end = new StringBuilder();
+                                if (paraphraser.length > 1) {
+                                    end.append(paraphraser[0]);
+                                        for (int z = 1; z < paraphraser.length; z++) {
+                                            end.append(" ").append(paraphraser[z]); }
+                    }
+                       output = end.toString();
+        
+        sentences[i] = output;
+        
+                    }
+                    for (int i = 0; i < sentences.length; i++) {
+                        System.out.println("Paraphrased Text:");
+                        System.out.println(sentences[i]);
+                    }
+                                StringBuilder paraphrased = new StringBuilder();
+                                if (sentences.length > 1) {
+                                    paraphrased.append(sentences[0]);
+                                        for (int z = 1; z < sentences.length; z++) {
+                                            paraphrased.append(" ").append(sentences[z]); }
+                    }
+                      String output = paraphrased.toString();
+        return output;
     }
-}
+    }
