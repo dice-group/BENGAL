@@ -8,9 +8,7 @@ package org.aksw.simba.bengal.selector;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -74,7 +72,7 @@ public abstract class AbstractSelector implements TripleSelector {
         try {
             if (targetClasses != null) {
                 if (targetClasses.isEmpty()) {
-                    sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o} ORDER BY DESC(?s)";
+                    sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o}";
                 } else {
                     sparqlQueryString = "SELECT ?p ?o WHERE {";
                     sparqlQueryString = sparqlQueryString + " {<" + res + "> ?p ?o}";
@@ -86,7 +84,6 @@ public abstract class AbstractSelector implements TripleSelector {
                 }
             }
 
-            System.out.println(sparqlQueryString);
             QueryFactory.create(sparqlQueryString);
             if (graph != null) {
                 qexec = QueryExecutionFactory.sparqlService(endpoint, sparqlQueryString, graph);
@@ -107,7 +104,7 @@ public abstract class AbstractSelector implements TripleSelector {
 
             if (targetClasses != null) {
                 if (targetClasses.isEmpty()) {
-                    sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o} ORDER BY DESC(?s)";
+                    sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o}";
                 } else {
                     sparqlQueryString = "SELECT ?p ?o WHERE {";
                     sparqlQueryString = sparqlQueryString + " {?o ?p <" + res + ">}";
@@ -119,7 +116,6 @@ public abstract class AbstractSelector implements TripleSelector {
                 }
             }
 
-            System.out.println(sparqlQueryString);
             QueryFactory.create(sparqlQueryString);
             if (graph != null) {
                 qexec = QueryExecutionFactory.sparqlService(endpoint, sparqlQueryString, graph);
@@ -141,19 +137,20 @@ public abstract class AbstractSelector implements TripleSelector {
         }
 
         // sort the statements
-        Map<Integer, Statement> map = new HashMap<>();
-        StmtIterator iter = m.listStatements();
-        while (iter.hasNext()) {
-            Statement s = iter.next();
-            map.put(s.hashCode(), s);
-        }
-        List<Integer> keys = new ArrayList<>(map.keySet());
-        Collections.sort(keys);
-        List<Statement> result = new ArrayList<>();
-        for (int k : keys) {
-            result.add(map.get(k));
-        }
-        return result;
+        // Map<Integer, Statement> map = new HashMap<>();
+        // StmtIterator iter = m.listStatements();
+        // while (iter.hasNext()) {
+        // Statement s = iter.next();
+        // map.put(s.hashCode(), s);
+        // }
+        // List<Integer> keys = new ArrayList<>(map.keySet());
+        // Collections.sort(keys);
+        // List<Statement> result = new ArrayList<>();
+        // for (int k : keys) {
+        // result.add(map.get(k));
+        // }
+        // return result;
+        return sortStatements(m.listStatements());
     }
 
     /**
@@ -171,7 +168,7 @@ public abstract class AbstractSelector implements TripleSelector {
         try {
             if (targetClasses != null) {
                 if (targetClasses.isEmpty()) {
-                    sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o} ORDER BY DESC(?s)";
+                    sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o}";
                 } else {
                     sparqlQueryString = "SELECT ?p ?o WHERE {";
                     sparqlQueryString = sparqlQueryString + " {<" + res + "> ?p ?o}";
@@ -183,7 +180,6 @@ public abstract class AbstractSelector implements TripleSelector {
                 }
             }
 
-            System.out.println(sparqlQueryString);
             QueryFactory.create(sparqlQueryString);
             if (graph != null) {
                 qexec = QueryExecutionFactory.sparqlService(endpoint, sparqlQueryString, graph);
@@ -207,7 +203,7 @@ public abstract class AbstractSelector implements TripleSelector {
             qexec.close();
         }
 
-        return sortStatementsByHash(m.listStatements());
+        return sortStatements(m.listStatements());
     }
 
     /**
@@ -217,6 +213,7 @@ public abstract class AbstractSelector implements TripleSelector {
      *            Iterator which is used to get the statements
      * @return List of statements sorted by hash
      */
+    @Deprecated
     protected List<Statement> sortStatementsByHash(StmtIterator stmtIterator) {
         IntObjectOpenHashMap<Statement> map = new IntObjectOpenHashMap<Statement>();
         Statement s;
@@ -240,6 +237,21 @@ public abstract class AbstractSelector implements TripleSelector {
         return result;
     }
 
+    protected List<Statement> sortStatements(StmtIterator stmtIterator) {
+        List<Statement> result = new ArrayList<Statement>();
+        while (stmtIterator.hasNext()) {
+            result.add(stmtIterator.next());
+        }
+        Collections.sort(result, new StatementComparator());
+        return result;
+    }
+
+    protected List<Statement> sortStatements(Set<Statement> statements) {
+        List<Statement> result = new ArrayList<Statement>(statements);
+        Collections.sort(result, new StatementComparator());
+        return result;
+    }
+
     /**
      * Sort statements by hash
      * 
@@ -247,6 +259,7 @@ public abstract class AbstractSelector implements TripleSelector {
      *            Set of statements
      * @return List of statements sorted by hash
      */
+    @Deprecated
     protected List<Statement> sortStatementsByHash(Set<Statement> statements) {
         IntObjectOpenHashMap<Statement> map = new IntObjectOpenHashMap<Statement>(2 * statements.size());
         for (Statement s : statements) {
@@ -299,7 +312,6 @@ public abstract class AbstractSelector implements TripleSelector {
                 query = query + " }";
             }
         }
-        System.out.println(query);
         Query sparqlQuery = QueryFactory.create(query, Syntax.syntaxARQ);
 
         QueryEngineHTTP httpQuery = new QueryEngineHTTP(endpoint, sparqlQuery);
@@ -307,14 +319,14 @@ public abstract class AbstractSelector implements TripleSelector {
         // execute a Select query
         try {
             ResultSet results = httpQuery.execSelect();
+            QuerySolution solution;
+            Resource r;
             while (results.hasNext()) {
-                QuerySolution solution = results.next();
-                System.out.println(solution);
+                solution = results.next();
                 // get the value of the variables in the select clause
                 try {
-                    Resource r = solution.getResource("x");
+                    r = solution.getResource("x");
                     result.add(r);
-                    System.out.println(r);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -322,10 +334,11 @@ public abstract class AbstractSelector implements TripleSelector {
         } finally {
             httpQuery.close();
         }
-        sortResourcesByHash(result);
+        sortResources(result);
         return result;
     }
 
+    @Deprecated
     protected void sortResourcesByHash(List<Resource> resources) {
         IntObjectOpenHashMap<Resource> map = new IntObjectOpenHashMap<Resource>(2 * resources.size());
         for (Resource r : resources) {
@@ -344,6 +357,10 @@ public abstract class AbstractSelector implements TripleSelector {
         for (int i = 0; i < keys.length; ++i) {
             resources.add(map.get(keys[i]));
         }
+    }
+
+    protected void sortResources(List<Resource> resources) {
+        Collections.sort(resources, new ResourceComparator());
     }
 
     /**

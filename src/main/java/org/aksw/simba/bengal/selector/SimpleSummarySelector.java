@@ -94,13 +94,13 @@ public class SimpleSummarySelector extends AbstractSelector {
         int size = minSize + r.nextInt(maxSize - minSize + 1);
         // check for size, if size > statements simply take statements
         if (size >= statements.size())
-            return sortStatementsByHash(new HashSet<Statement>(statements));
+            return sortStatements(new HashSet<Statement>(statements));
         while (result.size() < size) {
             counter = Math.abs(r.nextInt() % statements.size());
             result.add(statements.get(counter));
         }
         System.out.println(result);
-        return sortStatementsByHash(result);
+        return sortStatements(result);
     }
 
     public static void main(String args[]) {
