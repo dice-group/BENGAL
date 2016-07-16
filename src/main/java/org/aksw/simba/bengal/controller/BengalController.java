@@ -28,6 +28,7 @@ import org.aksw.simba.bengal.selector.TripleSelector;
 import org.aksw.simba.bengal.selector.TripleSelectorFactory;
 import org.aksw.simba.bengal.selector.TripleSelectorFactory.SelectorType;
 import org.aksw.simba.bengal.verbalizer.AvatarVerbalizer;
+import org.aksw.simba.bengal.verbalizer.NumberOfVerbalizedTriples;
 import org.aksw.simba.bengal.verbalizer.SemWeb2NLVerbalizer;
 import org.aksw.simba.bengal.verbalizer.Verbalizer;
 import org.apache.commons.io.IOUtils;
@@ -47,15 +48,16 @@ public class BengalController {
     private static final Logger LOGGER = LoggerFactory.getLogger(BengalController.class);
     private static final String NUMBEROFDOCS = "numberofdocs";
 
-    private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 100;
+    private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 10;
     // private static final long SEED = 20;
     private static final long SEED = 21;
-    private static final int MIN_SENTENCE = 3;
-    private static final int MAX_SENTENCE = 10;
-    private static final SelectorType SELECTOR_TYPE = SelectorType.HYBRID;
+    private static final int MIN_SENTENCE = 90;
+    private static final int MAX_SENTENCE = 400;
+    private static final SelectorType SELECTOR_TYPE = SelectorType.STAR;
     private static final boolean USE_PARAPHRASING = false;
     private static final boolean USE_PRONOUNS = true;
     private static final boolean USE_AVATAR = false;
+    private static final boolean USE_ONLY_OBJECT_PROPERTIES = false;
     private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 500;
 
     public static void main(String args[]) {
@@ -116,12 +118,14 @@ public class BengalController {
         Verbalizer verbalizer = null;
         AvatarVerbalizer alernativeVerbalizer = null;
         if (USE_AVATAR) {
-            alernativeVerbalizer = AvatarVerbalizer.create(classes, classes, endpoint, null, SEED, false);
+            alernativeVerbalizer = AvatarVerbalizer.create(classes,
+                    USE_ONLY_OBJECT_PROPERTIES ? classes : new HashSet<>(), endpoint, null, SEED, false);
             if (alernativeVerbalizer == null) {
                 return;
             }
         } else {
-            tripleSelector = factory.create(SELECTOR_TYPE, classes, classes, endpoint, null, MIN_SENTENCE, MAX_SENTENCE,
+            tripleSelector = factory.create(SELECTOR_TYPE, classes,
+                    USE_ONLY_OBJECT_PROPERTIES ? classes : new HashSet<>(), endpoint, null, MIN_SENTENCE, MAX_SENTENCE,
                     SEED);
             verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia(), USE_PRONOUNS);
         }
@@ -159,6 +163,15 @@ public class BengalController {
                     // create document
                     document = verbalizer.generateDocument(triples);
                     if (document != null) {
+                        List<NumberOfVerbalizedTriples> tripleCounts = document
+                                .getMarkings(NumberOfVerbalizedTriples.class);
+                        if ((tripleCounts.size() > 0) && (tripleCounts.get(0).getNumberOfTriples() < MIN_SENTENCE)) {
+                            LOGGER.error(
+                                    "The generated document does not have enough verbalized truples. It will be discarded.");
+                            document = null;
+                        }
+                    }
+                    if (document != null) {
                         // paraphrase document
                         if (paraphraser != null) {
                             try {
@@ -176,6 +189,7 @@ public class BengalController {
                 document.setDocumentURI("http://aksw.org/generated/" + counter);
                 counter++;
                 documents.add(document);
+                document = null;
             }
             try {
                 if (!USE_AVATAR) {

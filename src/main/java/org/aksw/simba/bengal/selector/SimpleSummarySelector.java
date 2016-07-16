@@ -91,7 +91,8 @@ public class SimpleSummarySelector extends AbstractSelector {
 
         // now pick random statements
         Set<Statement> result = new HashSet<>();
-        int size = minSize + r.nextInt(maxSize - minSize + 1);
+//        int size = minSize + r.nextInt(maxSize - minSize + 1);
+        int size = maxSize;
         // check for size, if size > statements simply take statements
         if (size >= statements.size())
             return sortStatements(new HashSet<Statement>(statements));

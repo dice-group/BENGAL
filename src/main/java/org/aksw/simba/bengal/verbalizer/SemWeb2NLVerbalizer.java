@@ -16,8 +16,6 @@ import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.MeaningSpan;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
-import org.aksw.simba.bengal.selector.SimpleSummarySelector;
-import org.aksw.simba.bengal.selector.TripleSelector;
 import org.aksw.simba.bengal.utils.DocumentHelper;
 import org.aksw.triple2nl.TripleConverter;
 import org.dllearner.kb.sparql.SparqlEndpoint;
@@ -47,9 +45,10 @@ public class SemWeb2NLVerbalizer implements Verbalizer, Comparator<NamedEntity> 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SemWeb2NLVerbalizer.class);
 
-    private static final Set<String> NEUTRAL_TYPES = new HashSet<String>(
-            Arrays.asList("http://dbpedia.org/ontology/PopulatedPlace", "http://dbpedia.org/ontology/Organisation",
-                    "http://dbpedia.org/ontology/CelestialBody"));
+    private static final HashSet<String> BLACKLISTED_PROPERTIES = new HashSet<String>(
+            Arrays.asList("http://www.w3.org/2000/01/rdf-schema#comment", "http://www.w3.org/2000/01/rdf-schema#label",
+                    "http://dbpedia.org/ontology/abstract", "http://dbpedia.org/ontology/wikiPageExternalLink",
+                    "http://www.w3.org/2002/07/owl#sameAs"));
 
     private TripleConverter converter;
     private SparqlEndpoint endpoint;
@@ -75,21 +74,24 @@ public class SemWeb2NLVerbalizer implements Verbalizer, Comparator<NamedEntity> 
         Resource subject, oldSubject = null;
         for (Statement s : triples) {
             subject = s.getSubject();
-            t = Triple.create(subject.asNode(), s.getPredicate().asNode(), s.getObject().asNode());
-            document = new DocumentImpl(converter.convertTripleToText(t));
-            if (!annotateDocument(document, s)) {
-                LOGGER.warn("One of the triples couldn't be translated. Returning null. triple={}", s);
-                return null;
+            if (!s.getObject().isAnon() && !BLACKLISTED_PROPERTIES.contains(s.getPredicate().getURI())) {
+                t = Triple.create(subject.asNode(), s.getPredicate().asNode(), s.getObject().asNode());
+                document = new DocumentImpl(converter.convertTripleToText(t));
+                if (annotateDocument(document, s)) {
+                    // if the current subject has been seen in the sentence
+                    // before
+                    // we can replace it with a pronoun.
+                    if (usePronouns && (subject.equals(oldSubject))) {
+                        replaceSubjectWithPronoun(document, subject.getURI());
+                    }
+                    // document = reduceEntityDensity(document, s);
+                    subDocs.add(document);
+//                    System.out.println(document);
+                    oldSubject = subject;
+                } else {
+                    LOGGER.info("One of the triples couldn't be translated. It will be ignored. triple={}", s);
+                }
             }
-            // if the current subject has been seen in the sentence before we
-            // can replace it with a pronoun.
-            if (usePronouns && (subject.equals(oldSubject))) {
-                replaceSubjectWithPronoun(document, subject.getURI());
-            }
-            // document = reduceEntityDensity(document, s);
-            subDocs.add(document);
-            System.out.println(document);
-            oldSubject = subject;
         }
 
         // generate the document containing all the sub documents
@@ -109,6 +111,7 @@ public class SemWeb2NLVerbalizer implements Verbalizer, Comparator<NamedEntity> 
             textBuilder.append('.');
         }
         document.setText(textBuilder.toString());
+        document.addMarking(new NumberOfVerbalizedTriples(subDocs.size()));
 
         return document;
     }
@@ -146,41 +149,48 @@ public class SemWeb2NLVerbalizer implements Verbalizer, Comparator<NamedEntity> 
         boolean possessiveForm = false;
         if ((documentText.charAt(end - 2) == '\'') && (documentText.charAt(end - 1) == 's')) {
             possessiveForm = true;
-        } else if (((end + 1) < documentText.length()) && (documentText.charAt(end) == '\'')
-                && (documentText.charAt(end + 1) == 's')) {
+        } else if (((end + 1) < documentText.length()) && (documentText.charAt(end) == '\'')) {
             possessiveForm = true;
-            length += 2;
+            // Check whether we have "<entity>'" or "<entity>'s"
+            if (documentText.charAt(end + 1) == 's') {
+                length += 2;
+            } else {
+                length += 1;
+            }
         }
 
         // Choose a pronoun based on the type of the entity
         String type = getType(subjectUri);
-        if (NEUTRAL_TYPES.contains(type)) {
-            if (possessiveForm) {
-                pronoun = (start == 0) ? "Its" : "its";
+        if (type != null) {
+            if (type.equals("http://dbpedia.org/ontology/Person")) {
+                // Get the comment text
+                String commentString = getGender(subjectUri);
+                // Search for a pronoun that identifies the person as man
+                if (commentString.contains(" he ") || commentString.contains("He ")
+                        || commentString.contains(" his ")) {
+                    if (possessiveForm) {
+                        pronoun = (start == 0) ? "His" : "his";
+                    } else {
+                        pronoun = (start == 0) ? "He" : "he";
+                    }
+                    // Ok, than search for a woman
+                } else if (commentString.contains(" she ") || commentString.contains("She ")
+                        || commentString.contains(" her ")) {
+                    if (possessiveForm) {
+                        pronoun = (start == 0) ? "Her" : "her";
+                    } else {
+                        pronoun = (start == 0) ? "She" : "she";
+                    }
+                }
+                // If we can not decide the gender we shouldn't insert a pronoun
+                // (let it be null)
             } else {
-                pronoun = (start == 0) ? "It" : "it";
-            }
-        } else if (type.equals("http://dbpedia.org/ontology/Person")) {
-            // Get the comment text
-            String commentString = getGender(subjectUri);
-            // Search for a pronoun that identifies the person as man
-            if (commentString.contains(" he ") || commentString.contains("He ") || commentString.contains(" his ")) {
                 if (possessiveForm) {
-                    pronoun = (start == 0) ? "His" : "his";
+                    pronoun = (start == 0) ? "Its" : "its";
                 } else {
-                    pronoun = (start == 0) ? "He" : "he";
-                }
-                // Ok, than search for a woman
-            } else if (commentString.contains(" she ") || commentString.contains("She ")
-                    || commentString.contains(" her ")) {
-                if (possessiveForm) {
-                    pronoun = (start == 0) ? "Her" : "her";
-                } else {
-                    pronoun = (start == 0) ? "She" : "she";
+                    pronoun = (start == 0) ? "It" : "it";
                 }
             }
-            // If we can not decide the gender we shouldn't insert a pronoun
-            // (let it be null)
         }
 
         // If we couldn't find a pronoun
@@ -203,7 +213,7 @@ public class SemWeb2NLVerbalizer implements Verbalizer, Comparator<NamedEntity> 
         String reduce = document.getText();
 
         if (tempSub == null || tempObj == null) {
-            LOGGER.warn("Couldn't find an label for " + s.getSubject().toString() + ". Returning null.");
+            LOGGER.info("Couldn't find an label for " + s.getSubject().toString() + ". Returning null.");
             return document;
         } else {
 
@@ -441,14 +451,14 @@ public class SemWeb2NLVerbalizer implements Verbalizer, Comparator<NamedEntity> 
     private boolean annotateDocument(Document document, Resource resource) {
         String label = getEnglishLabel(resource.getURI());
         if (label == null) {
-            LOGGER.warn("Couldn't find an English label for " + resource.toString() + ". Returning null.");
+            LOGGER.info("Couldn't find an English label for " + resource.toString() + ". Returning null.");
             return false;
         }
         String text = document.getText();
-        System.out.println("LABEL AQUI");
+//        System.out.println("LABEL AQUI");
         int pos = text.indexOf(label);
         if (pos < 0) {
-            LOGGER.warn("Couldn't find the label \"{}\" inside the given text \"{}\". Returning false.", label, text);
+            LOGGER.info("Couldn't find the label \"{}\" inside the given text \"{}\". Returning false.", label, text);
             // return false;
         } else {
             document.addMarking(new NamedEntity(pos, label.length(), resource.getURI()));
@@ -460,12 +470,12 @@ public class SemWeb2NLVerbalizer implements Verbalizer, Comparator<NamedEntity> 
         // we have to find out which label is the longer one and start with it
         String label1 = getEnglishLabel(subject.getURI());
         if (label1 == null) {
-            LOGGER.warn("Couldn't find an English label for " + subject.toString() + ". Returning null.");
+            LOGGER.info("Couldn't find an English label for " + subject.toString() + ". Returning null.");
             return false;
         }
         String label2 = getEnglishLabel(object.getURI());
         if (label2 == null) {
-            LOGGER.warn("Couldn't find an English label for " + object.toString() + ". Returning null.");
+            LOGGER.info("Couldn't find an English label for " + object.toString() + ". Returning null.");
             return false;
         }
         Resource r1, r2;
@@ -485,7 +495,7 @@ public class SemWeb2NLVerbalizer implements Verbalizer, Comparator<NamedEntity> 
         BitSet blockedPositions = new BitSet(text.length());
         int pos1 = text.indexOf(label1);
         if (pos1 < 0) {
-            LOGGER.warn("Couldn't find the label \"{}\" inside the given text \"{}\". Returning false.", label1, text);
+            LOGGER.info("Couldn't find the label \"{}\" inside the given text \"{}\". Returning false.", label1, text);
             // return false;
         } else {
             document.addMarking(new NamedEntity(pos1, label1.length(), r1.getURI()));
@@ -498,7 +508,7 @@ public class SemWeb2NLVerbalizer implements Verbalizer, Comparator<NamedEntity> 
         do {
             pos2 = text.indexOf(label2, pos2 + label2.length());
             while (pos2 < 0) {
-                LOGGER.warn("Couldn't find the label \"{}\" inside the given text \"{}\". Returning false.", label1,
+                LOGGER.info("Couldn't find the label \"{}\" inside the given text \"{}\". Returning false.", label1,
                         text);
                 return false;
             }

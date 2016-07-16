@@ -9,6 +9,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 
@@ -22,7 +23,7 @@ import com.hp.hpl.jena.rdf.model.Statement;
  *
  */
 public class HybridTripleSelector extends AbstractSelector {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HybridTripleSelector.class);
 
     private Set<String> sourceClasses;
@@ -90,57 +91,88 @@ public class HybridTripleSelector extends AbstractSelector {
         // pick a random length for the result list
         int size = minSize + r.nextInt(maxSize - minSize + 1);
         List<Statement> result = new ArrayList<>(size);
-        Set<Resource> visitedResources = new HashSet<Resource>();
 
         // Choose the first resource randomly
         int counter = Math.abs(r.nextInt() % resources.size());
         Resource currentResource = resources.get(counter);
-        visitedResources.add(currentResource);
 
+        Set<Statement> alreadySeenStatements = new HashSet<Statement>();
+        boolean madeAStepBackBefore = true;
+        Resource oldResource = null;
+        List<Statement> oldStatements = null;
         List<Statement> statements = null;
         Statement statement;
         boolean resourceChanged = true;
-        int retries = 0, maxRetries = 10;
+        int retries = 0, maxRetries = 10, statementsForThisResource = 0, processedStatementsOfThisResource = 0;
         while (result.size() < size) {
             // get symmetric CBD
             if (resourceChanged) {
+                oldStatements = statements;
                 statements = getSummary(currentResource);
                 if (statements == null) {
                     // there was an error
+                    LOGGER.error("Got an empty list of statements for the resource \"" + currentResource.getURI()
+                            + "\". Returning null.");
                     return null;
                 }
-                if (statements.size() == 0) {
-                    System.out.println(result);
-                    return result;
+                statementsForThisResource = statements.size();
+                processedStatementsOfThisResource = Sets
+                        .intersection(new HashSet<Statement>(statements), alreadySeenStatements).size();
+                // if all statements have been processed
+                if (processedStatementsOfThisResource == statementsForThisResource) {
+                    // try to make a step back.
+                    if (!madeAStepBackBefore) {
+                        madeAStepBackBefore = true;
+                        statements = oldStatements;
+                        currentResource = oldResource;
+                        statementsForThisResource = statements.size();
+                        processedStatementsOfThisResource = Sets
+                                .intersection(new HashSet<Statement>(statements), alreadySeenStatements).size();
+                    } else {
+                        LOGGER.info("Got stuck in a dead end. Returning the statements I selected so far.");
+                        // System.out.println(result);
+                        return result;
+                    }
                 }
                 resourceChanged = false;
             }
 
             // now pick a random statement
-            counter = Math.abs(r.nextInt() % statements.size());
+            counter = r.nextInt(statementsForThisResource);
             statement = statements.get(counter);
-            // if this is the last statement of this path
-            if (result.size() == (size - 1)) {
-                result.add(statement);
+            // make sure that we haven't seen this statement before
+            if (alreadySeenStatements.contains(statement)) {
+                ++retries;
+                if (retries > maxRetries) {
+                    LOGGER.warn(
+                            "After {} retries I couldn't select a matching statement. Returning the statements I selected so far.",
+                            maxRetries);
+                    // System.out.println(result);
+                    return result;
+                }
             } else {
-                // we have to make sure that the object is a resource that we
-                // have not seen before
-                if (statement.getObject().isResource()
-                        && (!visitedResources.contains(statement.getObject().asResource()))) {
+                // if this is the last statement of this path
+                if (result.size() == (size - 1)) {
                     result.add(statement);
-                    retries = 0;
-                    visitedResources.add(statement.getObject().asResource());
-                    // Choose whether we should go on with the path pattern
-                    if (r.nextBoolean()) {
-                        currentResource = statement.getObject().asResource();
-                        resourceChanged = true;
-                    }
+                    alreadySeenStatements.add(statement);
                 } else {
-                    ++retries;
-                    if(retries > maxRetries) {
-                        LOGGER.warn("After {} retries I couldn't select a matching statement. Returning the statements I selected so far.", maxRetries);
-                        System.out.println(result);
-                        return result;
+                    if (statement.getObject().isResource()) {
+                        result.add(statement);
+                        alreadySeenStatements.add(statement);
+                        ++processedStatementsOfThisResource;
+                        // Choose whether we should go on with the path pattern
+                        if (r.nextInt(statementsForThisResource) <= processedStatementsOfThisResource) {
+                            oldResource = currentResource;
+                            currentResource = statement.getObject().asResource();
+                            resourceChanged = true;
+                            madeAStepBackBefore = false;
+                            retries = 0;
+                            processedStatementsOfThisResource = 0;
+                        }
+                    } else {
+                        result.add(statement);
+                        alreadySeenStatements.add(statement);
+                        ++processedStatementsOfThisResource;
                     }
                 }
             }
