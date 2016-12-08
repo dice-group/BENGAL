@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.aksw.gerbil.transfer.nif.Document;
 
-import com.hp.hpl.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.Statement;
 
 /**
  * Interface for verbalizer. The job of a verbalizer is to take a bunch of RDF

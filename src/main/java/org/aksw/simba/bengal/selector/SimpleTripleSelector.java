@@ -8,7 +8,7 @@ package org.aksw.simba.bengal.selector;
 import java.util.List;
 import java.util.Set;
 
-import com.hp.hpl.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.Statement;
 
 /**
  * Implements a triple selector that describes a sinle entity in one sentence.

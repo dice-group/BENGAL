@@ -6,3 +6,4 @@ log
 test_output*
 bengal*.ttl
 bing.properties
+.DS_Store

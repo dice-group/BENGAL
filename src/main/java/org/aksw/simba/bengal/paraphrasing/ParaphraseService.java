@@ -1,13 +1,5 @@
 package org.aksw.simba.bengal.paraphrasing;
 
-import edu.stanford.nlp.tagger.maxent.MaxentTagger;
-import simplenlg.features.Feature;
-import simplenlg.framework.NLGElement;
-import simplenlg.framework.NLGFactory;
-import simplenlg.lexicon.Lexicon;
-import simplenlg.phrasespec.SPhraseSpec;
-import simplenlg.realiser.english.Realiser;
-
 /**
  * This interface defines methods to paraphrase strings.
  * 
