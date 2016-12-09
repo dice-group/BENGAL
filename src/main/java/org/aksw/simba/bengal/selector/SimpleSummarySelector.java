@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 
 /**
  *

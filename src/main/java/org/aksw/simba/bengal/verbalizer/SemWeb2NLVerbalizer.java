@@ -24,16 +24,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.carrotsearch.hppc.BitSet;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.query.QuerySolution;
-import com.hp.hpl.jena.query.ResultSet;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.Statement;
-import com.hp.hpl.jena.rdf.model.impl.PropertyImpl;
-import com.hp.hpl.jena.rdf.model.impl.ResourceImpl;
-import com.hp.hpl.jena.rdf.model.impl.StatementImpl;
-import com.hp.hpl.jena.vocabulary.RDF;
-import com.hp.hpl.jena.vocabulary.RDFS;
+
+
+import org.apache.jena.graph.Triple;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.ResultSet;
+
+
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.impl.PropertyImpl;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
+
+import org.apache.jena.rdf.model.impl.StatementImpl;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
 
 /**
  * A deterministic verbalizer which relies on the SemWeb2NL project.
@@ -76,7 +81,7 @@ public class SemWeb2NLVerbalizer implements Verbalizer, Comparator<NamedEntity> 
             subject = s.getSubject();
             if (!s.getObject().isAnon() && !BLACKLISTED_PROPERTIES.contains(s.getPredicate().getURI())) {
                 t = Triple.create(subject.asNode(), s.getPredicate().asNode(), s.getObject().asNode());
-                document = new DocumentImpl(converter.convertTripleToText(t));
+                document = new DocumentImpl(converter.convert(t).toString());
                 if (annotateDocument(document, s)) {
                     // if the current subject has been seen in the sentence
                     // before

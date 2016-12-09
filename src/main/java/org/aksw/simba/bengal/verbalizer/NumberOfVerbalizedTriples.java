@@ -20,6 +20,12 @@ public class NumberOfVerbalizedTriples implements Marking {
     }
 
     @Override
+    public Object clone() throws CloneNotSupportedException {
+    	//TODO hack to avoid error if this method is deleted @MichaelRoeder
+ 		return null;
+ 	}
+   
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
