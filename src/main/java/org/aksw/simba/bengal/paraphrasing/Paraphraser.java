@@ -16,16 +16,16 @@ import org.aksw.gerbil.transfer.nif.Document;
  */
 public interface Paraphraser {
 
-    /**
-     * This method paraphrases the given document and returns a document with
-     * the paraphrased text and updated named entities. This method should never
-     * return null. If the paraphrasing encounters a problem the original
-     * document should be returned.
-     * 
-     * @param doc
-     *            the {@link Document} that should be paraphrased
-     * @return the paraphrased document or the original document if a problem
-     *         occurs.
-     */
-    public Document getParaphrase(Document doc);
+	/**
+	 * This method paraphrases the given document and returns a document with
+	 * the paraphrased text and updated named entities. This method should never
+	 * return null. If the paraphrasing encounters a problem the original
+	 * document should be returned.
+	 * 
+	 * @param doc
+	 *            the {@link Document} that should be paraphrased
+	 * @return the paraphrased document or the original document if a problem
+	 *         occurs.
+	 */
+	public Document getParaphrase(Document doc);
 }

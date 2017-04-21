@@ -14,74 +14,74 @@ import com.carrotsearch.hppc.BitSet;
 
 public class ParaphraserImpl implements Paraphraser, Comparator<NamedEntity> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Paraphraser.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Paraphraser.class);
 
-    protected ParaphraseService service;
+	protected ParaphraseService service;
 
-    public ParaphraserImpl(ParaphraseService service) {
-        this.service = service;
-    }
+	public ParaphraserImpl(ParaphraseService service) {
+		this.service = service;
+	}
 
-    public Document getParaphrase(Document doc) {
-        String text = doc.getText();
+	@Override
+	public Document getParaphrase(Document doc) {
+		String text = doc.getText();
+		String paraphrases = service.paraphrase(text);
+		if (paraphrases == null) {
+			return doc;
+		}
 
-        String paraphrases = service.paraphrase(text);
-        if (paraphrases == null) {
-            return doc;
-        }
+		Document newDoc = new DocumentImpl(paraphrases, doc.getDocumentURI());
 
-        Document newDoc = new DocumentImpl(paraphrases, doc.getDocumentURI());
+		// find all named entities inside the new text
+		// first sort them descending by their length
+		List<NamedEntity> originalNes = doc.getMarkings(NamedEntity.class);
+		Collections.sort(originalNes, this);
+		// Go through the list of named entities (starting with the longest) and
+		// search for them inside the paraphrased text. Make sure that the
+		// entities are not overlapping.
+		BitSet blockedPositions = new BitSet(paraphrases.length());
+		BitSet currentPositions = new BitSet(paraphrases.length());
+		String label;
+		int pos;
+		for (NamedEntity ne : originalNes) {
+			label = text.substring(ne.getStartPosition(), ne.getStartPosition() + ne.getLength());
+			pos = -ne.getLength();
+			do {
+				// search the position in the new text (make sure that we start
+				// behind the position we might have found before)
+				pos = paraphrases.indexOf(label, pos + ne.getLength());
+				if (pos < 0) {
+					// the position search failed
+					LOGGER.warn(
+							"The paraphrasing changed one of the entities. Couldn't find the surface form \"{}\" in the text \"{}\". Returning the original document.",
+							label, paraphrases);
+					return doc;
+				}
+				currentPositions.clear();
+				// check that this part of the String does not already have been
+				// blocked
+				currentPositions.set(pos, pos + ne.getLength());
+			} while (BitSet.intersectionCount(blockedPositions, currentPositions) > 0);
+			// Update the position in the new text
+			newDoc.addMarking(new NamedEntity(pos, ne.getLength(), ne.getUris()));
+			blockedPositions.or(currentPositions);
+		}
+		return newDoc;
+	}
 
-        // find all named entities inside the new text
-        // first sort them descending by their length
-        List<NamedEntity> originalNes = doc.getMarkings(NamedEntity.class);
-        Collections.sort(originalNes, this);
-        // Go through the list of named entities (starting with the longest) and
-        // search for them inside the paraphrased text. Make sure that the
-        // entities are not overlapping.
-        BitSet blockedPositions = new BitSet(paraphrases.length());
-        BitSet currentPositions = new BitSet(paraphrases.length());
-        String label;
-        int pos;
-        for (NamedEntity ne : originalNes) {
-            label = text.substring(ne.getStartPosition(), ne.getStartPosition() + ne.getLength());
-            pos = -ne.getLength();
-            do {
-                // search the position in the new text (make sure that we start
-                // behind the position we might have found before)
-                pos = paraphrases.indexOf(label, pos + ne.getLength());
-                if (pos < 0) {
-                    // the position search failed
-                    LOGGER.warn(
-                            "The paraphrasing changed one of the entities. Couldn't find the surface form \"{}\" in the text \"{}\". Returning the original document.",
-                            label, paraphrases);
-                    return doc;
-                }
-                currentPositions.clear();
-                // check that this part of the String does not already have been
-                // blocked
-                currentPositions.set(pos, pos + ne.getLength());
-            } while (BitSet.intersectionCount(blockedPositions, currentPositions) > 0);
-            // Update the position in the new text
-            newDoc.addMarking(new NamedEntity(pos, ne.getLength(), ne.getUris()));
-            blockedPositions.or(currentPositions);
-        }
-        return newDoc;
-    }
-
-    /**
-     * Sorts Named entities descending by their length.
-     */
-    @Override
-    public int compare(NamedEntity n1, NamedEntity n2) {
-        int diff = n1.getLength() - n2.getLength();
-        if (diff < 0) {
-            // n1 is shorter
-            return 1;
-        } else if (diff > 0) {
-            return -1;
-        } else {
-            return 0;
-        }
-    }
+	/**
+	 * Sorts Named entities descending by their length.
+	 */
+	@Override
+	public int compare(NamedEntity n1, NamedEntity n2) {
+		int diff = n1.getLength() - n2.getLength();
+		if (diff < 0) {
+			// n1 is shorter
+			return 1;
+		} else if (diff > 0) {
+			return -1;
+		} else {
+			return 0;
+		}
+	}
 }

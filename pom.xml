@@ -79,6 +79,12 @@
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- needed to make paraphrasing work -->
+<dependency>
+  <groupId>wordnet</groupId>
+  <artifactId>jaws</artifactId>
+  <version>1.0</version>
+</dependency>
 	</dependencies>
 
 	<dependencyManagement>

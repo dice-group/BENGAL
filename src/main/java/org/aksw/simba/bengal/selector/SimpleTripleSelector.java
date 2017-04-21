@@ -12,26 +12,36 @@ import org.apache.jena.rdf.model.Statement;
 
 /**
  * Implements a triple selector that describes a sinle entity in one sentence.
+ * 
  * @author ngonga
  */
 @Deprecated
-public class SimpleTripleSelector implements TripleSelector{
+public class SimpleTripleSelector implements TripleSelector {
 
-    int benchmarkSize;
-    int minNumberOfTriples;
-    int maxNumberOfTriples;
-    double starCoefficient;
-    
-    public SimpleTripleSelector(String endpoint, Set<String> classes)
-    {
-        benchmarkSize = 10;
-        minNumberOfTriples = 1;
-        maxNumberOfTriples = 3;
-        starCoefficient = 0.5d;
-    }
-    
-    public List<Statement> getNextStatements() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
+	int benchmarkSize;
+	int minNumberOfTriples;
+	int maxNumberOfTriples;
+	double starCoefficient;
+
+	public SimpleTripleSelector(String endpoint, Set<String> classes) {
+		benchmarkSize = 10;
+		minNumberOfTriples = 1;
+		maxNumberOfTriples = 3;
+		starCoefficient = 0.5d;
+	}
+
+	@Override
+	public List<Statement> getNextStatements() {
+		throw new UnsupportedOperationException("Not supported yet."); // To
+																		// change
+																		// body
+																		// of
+																		// generated
+																		// methods,
+																		// choose
+																		// Tools
+																		// |
+																		// Templates.
+	}
+
 }
