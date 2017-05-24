@@ -79,6 +79,23 @@
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- needed to make paraphrasing work -->
+<dependency>
+  <groupId>wordnet</groupId>
+  <artifactId>jaws</artifactId>
+  <version>1.0</version>
+</dependency>
+
+<dependency>
+  <groupId>org.hobbit</groupId>
+  <artifactId>gerbil-benchmark</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.lucene</groupId>
+    <artifactId>lucene-analyzers-common</artifactId>
+    <version>6.3.0</version>
+</dependency>
 	</dependencies>
 
 	<dependencyManagement>

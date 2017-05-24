@@ -11,8 +11,9 @@ import org.apache.jena.rdf.model.Statement;
 
 /**
  * Gathers a set of triples for verbalization
+ * 
  * @author ngonga
  */
 public interface TripleSelector {
-    public List<Statement> getNextStatements();
+	public List<Statement> getNextStatements();
 }
