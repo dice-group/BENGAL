@@ -17,5 +17,6 @@ import org.apache.jena.rdf.model.Statement;
  * @author ngonga
  */
 public interface BVerbalizer {
-	public Document generateDocument(List<Statement> triples);
+    public Document generateDocument(List<Statement> triples);
+	
 }

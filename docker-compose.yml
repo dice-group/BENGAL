@@ -1,0 +1,22 @@
+version: '2'
+services:
+  bengal:
+    image: git.project-hobbit.eu:4567/gerbil/bengal-dataset-generator
+    networks:
+      - hobbit
+    environment:
+      - ENDPOINT=http://dbpedia.org/sparql
+      - SELECTOR=star
+      - OUTPUT=output
+      - SEED=21
+      - DOCUMENTS=2
+      - WAITING_TIME=500
+      - "CLASSES=http://dbpedia.org/ontology/Person http://dbpedia.org/ontology/Place http://dbpedia.org/ontology/Organisation"
+    volumes:
+      - ./output:/bengal/output
+
+
+networks:
+  hobbit:
+    external:
+      name: hobbit

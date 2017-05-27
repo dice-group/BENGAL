@@ -6,6 +6,7 @@
 package org.aksw.simba.bengal.selector;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.jena.rdf.model.Statement;
@@ -43,5 +44,10 @@ public class SimpleTripleSelector implements TripleSelector {
 																		// |
 																		// Templates.
 	}
+
+    @Override
+    public List<Statement> getNextStatements(Map<String, Set<String>> resourceTypeMapping) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 
 }

@@ -1,8 +1,10 @@
 package org.aksw.simba.bengal.selector;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -84,10 +86,15 @@ public class HybridTripleSelector extends AbstractSelector {
 	 * 
 	 * @return Set of statements
 	 */
+    @Override
+    public List<Statement> getNextStatements() {
+        return getNextStatements(new HashMap<>());
+    }
+    
 	@Override
-	public List<Statement> getNextStatements() {
+	public List<Statement> getNextStatements(Map<String, Set<String>> resourceTypeMapping) {
 		if (resources == null) {
-			resources = getResources(sourceClasses);
+			resources = getResources(sourceClasses, resourceTypeMapping);
 		}
 		// pick a random length for the result list
 		int size = minSize + r.nextInt(maxSize - minSize + 1);

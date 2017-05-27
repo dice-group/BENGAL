@@ -6,6 +6,8 @@
 package org.aksw.simba.bengal.selector;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.jena.rdf.model.Statement;
 
@@ -16,4 +18,7 @@ import org.apache.jena.rdf.model.Statement;
  */
 public interface TripleSelector {
 	public List<Statement> getNextStatements();
+
+    public List<Statement> getNextStatements(Map<String, Set<String>> resourceTypeMapping);
+
 }
