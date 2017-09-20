@@ -79,6 +79,11 @@
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.aksw.simba</groupId>
+			<artifactId>BENGAL</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
 		<!-- needed to make paraphrasing work -->
 <dependency>
   <groupId>wordnet</groupId>
