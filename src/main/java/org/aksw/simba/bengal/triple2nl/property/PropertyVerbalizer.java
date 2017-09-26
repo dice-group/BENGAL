@@ -199,8 +199,7 @@ public class PropertyVerbalizer {
 	}
 
 	/**
-	 * Returns log(nounCount/verbCount), i.e., positive for noun, negative for
-	 * verb
+	 * Returns log(nounCount/verbCount), i.e., positive for noun, negative for verb
 	 *
 	 * @param token
 	 *            Input token

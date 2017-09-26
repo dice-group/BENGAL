@@ -323,7 +323,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		try {
 			Properties prop = new Properties();
 			InputStream input = new FileInputStream(
-					"/Users/diegomoussallem/Desktop/BENGAL-master/src/main/resources/config/bengal.properties");
+					"/Users/Kunal/workspace/BENGAL/src/main/resources/config/bengal.properties");
 			prop.load(input);
 
 			String surfaceFormTSV = prop.getProperty("surfaceForms");
