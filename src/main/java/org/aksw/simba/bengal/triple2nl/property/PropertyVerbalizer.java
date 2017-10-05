@@ -51,7 +51,6 @@ import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.pipeline.StanfordCoreNLPClient;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.trees.TreeCoreAnnotations.TreeAnnotation;
 import edu.stanford.nlp.util.CoreMap;
@@ -102,8 +101,10 @@ public class PropertyVerbalizer {
 		Properties props = new Properties();
 		props.put("annotators", "tokenize, ssplit, pos, lemma, parse");
 		props.put("ssplit.isOneSentence", "true");
-		 pipeline = new StanfordCoreNLPWrapper(new StanfordCoreNLP(props));
-		//pipeline = new StanfordCoreNLPWrapper(new StanfordCoreNLPClient(props, "titan.informatik.uni-leipzig.de", 9000));
+		pipeline = new StanfordCoreNLPWrapper(new StanfordCoreNLP(props));
+		// pipeline = new StanfordCoreNLPWrapper(new
+		// StanfordCoreNLPClient(props, "titan.informatik.uni-leipzig.de",
+		// 9000));
 	}
 
 	public PropertyVerbalization verbalize(String propertyURI) {

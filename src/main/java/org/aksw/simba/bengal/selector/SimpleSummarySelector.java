@@ -22,6 +22,7 @@ public class SimpleSummarySelector extends AbstractSelector {
 	private Set<String> sourceClasses;
 	private List<Resource> resources;
 	private Random r = new Random(20);
+	@SuppressWarnings("unused")
 	private int minSize = 1;
 	private int maxSize = 5;
 
@@ -101,7 +102,7 @@ public class SimpleSummarySelector extends AbstractSelector {
 			counter = Math.abs(r.nextInt() % statements.size());
 			result.add(statements.get(counter));
 		}
-		//System.out.println(result);
+		// System.out.println(result);
 		return sortStatements(result);
 	}
 

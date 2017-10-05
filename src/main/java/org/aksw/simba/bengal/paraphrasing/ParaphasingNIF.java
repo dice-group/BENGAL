@@ -38,11 +38,7 @@ import com.carrotsearch.hppc.BitSet;
 public class ParaphasingNIF {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ParaphasingNIF.class);
-	// private static final String FILENAME =
-	// "/Users/diegomoussallem/Desktop/BENGAL-master/bengal_datasets/B1_bengal_path_100.ttl";
-	// private static final String FILENAME =
-	// "/Users/diegomoussallem/Desktop/BENGAL-master/bengal_datasets/B12_bengal_hybrid_object_10.ttl";
-	private static final String FILENAME = "/Users/diegomoussallem/Desktop/BENGAL-master/bengal_path_1.ttl";
+	private static final String FILENAME = "bengal_path_1.ttl";
 
 	public void replaceSubjectWithPronoun(Document document, String subjectUri) {
 		MeaningSpan marking = DocumentHelper.searchFirstOccurrence(subjectUri, document);
@@ -191,6 +187,7 @@ public class ParaphasingNIF {
 		return null;
 	}
 
+	@SuppressWarnings("deprecation")
 	public static Document replaceSubjectWithSurfaceForms(Document document) throws IOException {
 
 		Document newDoc = null;
@@ -308,8 +305,7 @@ public class ParaphasingNIF {
 	public static String getSurfaceForm(String resource) throws IOException {
 		try {
 			Properties prop = new Properties();
-			InputStream input = new FileInputStream(
-					"/Users/diegomoussallem/Desktop/BENGAL-master/src/main/resources/config/bengal.properties");
+			InputStream input = new FileInputStream("src/main/resources/config/bengal.properties");
 			prop.load(input);
 
 			String surfaceFormTSV = prop.getProperty("surfaceForms");
@@ -425,12 +421,12 @@ public class ParaphasingNIF {
 			}
 		}
 
-		//for (Document doc : documents2) {
-		//	Document newDoc = replaceSubjectWithSurfaceForms(doc);
-		//	LOGGER.info("Created document without paraphrasing #" + count);
-		//	newDoc.setDocumentURI("http://aksw.org/generated/" + count);
-		//	documents3.add(newDoc);
-		//}
+		// for (Document doc : documents2) {
+		// Document newDoc = replaceSubjectWithSurfaceForms(doc);
+		// LOGGER.info("Created document without paraphrasing #" + count);
+		// newDoc.setDocumentURI("http://aksw.org/generated/" + count);
+		// documents3.add(newDoc);
+		// }
 
 		// generate file name and path from corpus name
 		String filePath = "B12_bengal_hybrid_object_10_paraphrased.ttl";

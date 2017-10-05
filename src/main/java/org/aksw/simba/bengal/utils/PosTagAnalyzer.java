@@ -1,4 +1,5 @@
-package org.aksw.simba.bengal.tools;
+package org.aksw.simba.bengal.utils;
+
 
 import java.io.FileWriter;
 import java.util.ArrayList;

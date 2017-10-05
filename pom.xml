@@ -36,11 +36,8 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<dependency>
-			<groupId>org.aksw</groupId>
-			<artifactId>gerbil.nif.transfer</artifactId>
-			<version>1.2.2-jena3.1</version>
-		</dependency>
+		<!-- <dependency> <groupId>org.aksw</groupId> <artifactId>gerbil.nif.transfer</artifactId> 
+			<version>1.2.4-jena3.1</version> </dependency> -->
 		<dependency>
 			<groupId>org.aksw.semweb2nl</groupId>
 			<artifactId>triple2nl</artifactId>
@@ -57,12 +54,8 @@
 			<artifactId>SimpleNLG</artifactId>
 			<version>4.4.7-SNAPSHOT</version>
 		</dependency>
-		<dependency>
-			<groupId>com.memetix</groupId>
-			<artifactId>microsoft-translator-java-api</artifactId>
-			<version>0.6.1</version>
-			<type>jar</type>
-		</dependency>
+		<!-- <dependency> <groupId>com.memetix</groupId> <artifactId>microsoft-translator-java-api</artifactId> 
+			<version>0.6.1</version> <type>jar</type> </dependency> -->
 		<dependency>
 			<groupId>com.carrotsearch</groupId>
 			<artifactId>hppc</artifactId>
@@ -79,23 +72,49 @@
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- <dependency> <groupId>org.apache.solr</groupId> <artifactId>solr-solrj</artifactId> 
+			<version>5.0-SNAPSHOT</version> <exclusions> <exclusion> <groupId>org.apache.httpcomponents</groupId> 
+			<artifactId>httpclient</artifactId> </exclusion> </exclusions> </dependency> -->
 		<!-- needed to make paraphrasing work -->
-<dependency>
-  <groupId>wordnet</groupId>
-  <artifactId>jaws</artifactId>
-  <version>1.0</version>
-</dependency>
-
-<dependency>
-  <groupId>org.hobbit</groupId>
-  <artifactId>gerbil-benchmark</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-</dependency>
-<dependency>
-    <groupId>org.apache.lucene</groupId>
-    <artifactId>lucene-analyzers-common</artifactId>
-    <version>6.3.0</version>
-</dependency>
+		<dependency>
+			<groupId>wordnet</groupId>
+			<artifactId>jaws</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<!-- <dependency> <groupId>edu.stanford.nlp</groupId> <artifactId>stanford-corenlp</artifactId> 
+			<version>3.5.0</version> <classifier>models</classifier> </dependency> -->
+		<dependency>
+			<groupId>org.hobbit</groupId>
+			<artifactId>gerbil-benchmark</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>it.unimi.dsi</groupId>
+					<artifactId>fastutil</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.hobbit</groupId>
+					<artifactId>core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>apache-jena-libs</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-arq</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>it.unimi.dsi</groupId>
+			<artifactId>fastutil</artifactId>
+			<version>7.0.2</version>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>

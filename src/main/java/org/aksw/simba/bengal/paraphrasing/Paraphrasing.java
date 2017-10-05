@@ -134,10 +134,10 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 				s.setObject(sc.toString());
 
 				if (!inf_verb.equals("be")) {
-				s.setFeature(Feature.PERFECT, true);
+					s.setFeature(Feature.PERFECT, true);
 				}
-				if(!Pos[value].equals(Pos.length) && !Pos[value+1].contains("JJ")){
-				s.setFeature(Feature.PASSIVE, true);
+				if (!Pos[value].equals(Pos.length) && !Pos[value + 1].contains("JJ")) {
+					s.setFeature(Feature.PASSIVE, true);
 				}
 				String output = realiser.realiseSentence(s) + " ";
 				String[] paraphraser = output.split("\\s+");
@@ -154,7 +154,7 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 							find++;
 							if (inf_verb.equals("be") && find > 0) {
 								continue;
-							} else if ((!inf_verb.equals("be") && find > 1) ){
+							} else if ((!inf_verb.equals("be") && find > 1)) {
 								continue;
 							}
 						}
@@ -231,7 +231,8 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 				return synonym;
 			}
 		} else {
-			//System.err.println("No synsets exist that contain the word form '" + word + "'");
+			// System.err.println("No synsets exist that contain the word form
+			// '" + word + "'");
 			return word;
 		}
 

@@ -47,15 +47,15 @@ public class BengalController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BengalController.class);
 	private static final String NUMBEROFDOCS = "numberofdocs";
 
-	private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 100;
+	private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 1;
 	private static final long SEED = 21;
-	private static final int MIN_SENTENCE = 1;
+	private static final int MIN_SENTENCE = 3;
 	private static final int MAX_SENTENCE = 5;
-	private static final SelectorType SELECTOR_TYPE = SelectorType.HYBRID;
-	private static final boolean USE_PARAPHRASING = true;
-	private static final boolean USE_PRONOUNS = true;
-	private static final boolean USE_SURFACEFORMS = true;
-	private static final boolean USE_AVATAR = true;
+	private static final SelectorType SELECTOR_TYPE = SelectorType.STAR;
+	private static final boolean USE_PARAPHRASING = false;
+	private static final boolean USE_PRONOUNS = false;
+	private static final boolean USE_SURFACEFORMS = false;
+	private static final boolean USE_AVATAR = false;
 	private static final boolean USE_ONLY_OBJECT_PROPERTIES = false;
 	private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 500;
 
@@ -87,8 +87,9 @@ public class BengalController {
 				+ (USE_SURFACEFORMS ? "surface_" : "") + (USE_PARAPHRASING ? "para_" : "")
 				+ Integer.toString(DEFAULT_NUMBER_OF_DOCUMENTS) + ".ttl";
 		BengalController.generateCorpus(new HashMap<String, String>(), "http://dbpedia.org/sparql", corpusName);
-		//BengalController.generateCorpus(new HashMap<String, String>(), "http://139.18.2.164:3030/ds/sparql", corpusName);
-		
+		// BengalController.generateCorpus(new HashMap<String, String>(),
+		// "http://139.18.2.164:3030/ds/sparql", corpusName);
+
 		// This is just to check whether the created documents make sense
 		// If the entities have a bad positioning inside the documents the
 		// parser should print warn messages
@@ -158,7 +159,7 @@ public class BengalController {
 		while (documents.size() < numberOfDocuments) {
 			if (USE_AVATAR) {
 				document = alernativeVerbalizer.nextDocument();
-				
+
 				if (document != null) {
 					// paraphrase document
 					if (paraphraser != null) {
@@ -172,7 +173,7 @@ public class BengalController {
 			} else {
 				// select triples
 				triples = tripleSelector.getNextStatements();
-				//System.out.println(triples.size());
+				System.out.println(triples.toString());
 				if ((triples != null) && (triples.size() >= MIN_SENTENCE)) {
 					// create document
 					document = verbalizer.generateDocument(triples);
@@ -195,10 +196,10 @@ public class BengalController {
 							}
 						}
 					}
-					LOGGER.error("Triples are "+ triples.size() + " then greater than  " + MIN_SENTENCE);
-				} 
-				else {
-				LOGGER.error("Triples are "+ triples.size() + " then shorter than  " + MIN_SENTENCE);}
+					LOGGER.error("Triples are " + triples.size() + " then greater than  " + MIN_SENTENCE);
+				} else {
+					LOGGER.error("Triples are " + triples.size() + " then shorter than  " + MIN_SENTENCE);
+				}
 			}
 			// If the generation and paraphrasing were successful
 			if (document != null) {

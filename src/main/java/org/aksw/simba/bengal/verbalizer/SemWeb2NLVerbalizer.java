@@ -100,7 +100,8 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 						replaceSubjectWithPronoun(document, subject.getURI());
 					}
 					// we can replace it with a list of surface forms.
-					//if (useSurfaceForms && (subject.equals(oldSubject)) && SFchange == 0) {
+					// if (useSurfaceForms && (subject.equals(oldSubject)) &&
+					// SFchange == 0) {
 					if (useSurfaceForms) {
 						try {
 							document = replaceSubjectWithSurfaceForms(document, s);
@@ -156,9 +157,9 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 	 * @param document
 	 * @param s
 	 */
-	
+
 	public void replaceSubjectWithPronoun(Document document, String subjectUri) {
-		//System.out.println("replacing by pronouns");
+		// System.out.println("replacing by pronouns");
 		MeaningSpan marking = DocumentHelper.searchFirstOccurrence(subjectUri, document);
 		if (marking == null) {
 			return;
@@ -232,9 +233,9 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		DocumentHelper.replaceText(document, start, length, pronoun);
 	}
 
-	//@SuppressWarnings("deprecation")
+	// @SuppressWarnings("deprecation")
 	private Document replaceSubjectWithSurfaceForms(Document document, Statement statements) throws IOException {
-		//System.out.println("replacing by surface forms");
+		// System.out.println("replacing by surface forms");
 		MeaningSpan marking = DocumentHelper.searchFirstOccurrence(statements.getSubject().toString(), document);
 		if (marking == null) {
 			return document;
@@ -268,9 +269,9 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		int pos;
 		for (int i = 0; i < labels.length; ++i) {
 			label = labels[i];
-			if(label.equals("")){
+			if (label.equals("")) {
 				return document;
-				
+
 			}
 			uri = labelsToUris.get(label);
 			newText = document.getText().replace(oldLabel, label);
@@ -309,7 +310,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 			}
 			it.remove(); // avoids a ConcurrentModificationException
 		}
-		//System.out.println(newDoc.toString());
+		// System.out.println(newDoc.toString());
 		return newDoc;
 	}
 
@@ -319,9 +320,9 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		uri = statements.getSubject().getURI();
 		// System.out.println("Resource to get SF" + uri);
 		label = getSurfaceForm(uri);
-		//if(label.equals("")){
-			//label = getEnglishLabel(uri);
-		//}
+		// if(label.equals("")){
+		// label = getEnglishLabel(uri);
+		// }
 		// System.out.println("Label SF" + label);
 		if (label != null) {
 			labelsToUris.put(label, uri);
@@ -332,8 +333,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 	private String getSurfaceForm(String resource) throws IOException {
 		try {
 			Properties prop = new Properties();
-			InputStream input = new FileInputStream(
-					"/Users/diegomoussallem/Desktop/BENGAL-master/src/main/resources/config/bengal.properties");
+			InputStream input = new FileInputStream("src/main/resources/config/bengal.properties");
 			prop.load(input);
 
 			String surfaceFormTSV = prop.getProperty("surfaceForms");
@@ -342,15 +342,18 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 			String label = "";
 
 			// System.out.println("Resource in getting SF" + resource);
-			 LOGGER.info("Start parsing: " + file);
+			LOGGER.info("Start parsing: " + file);
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			while (br.ready()) {
 				String[] line = br.readLine().split("\t");
-				String subject = line[0];
-				String object = line[1];
-				if (subject.equals(resource)) {
-					label = object;
-					break;
+				try {
+					String subject = line[0];
+					String object = line[1];
+					if (subject.equals(resource)) {
+						label = object;
+						break;
+					}
+				} catch (Exception e) {
 				}
 			}
 			br.close();

@@ -110,8 +110,9 @@ public class PathBasedTripleSelector extends AbstractSelector {
 					return null;
 				}
 				if (statements.size() == 0) {
-					//LOGGER.warn("Error, Statements size is equal 0" + result.size());
-					//System.out.println(result.size());
+					// LOGGER.warn("Error, Statements size is equal 0" +
+					// result.size());
+					// System.out.println(result.size());
 					return result;
 				}
 				resourceChanged = false;
@@ -144,7 +145,7 @@ public class PathBasedTripleSelector extends AbstractSelector {
 				}
 			}
 		}
-		//LOGGER.warn("Result-> ", result);
+		// LOGGER.warn("Result-> ", result);
 		return result;
 	}
 }
