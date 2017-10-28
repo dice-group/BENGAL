@@ -37,6 +37,7 @@ import com.google.common.base.Joiner;
  *
  * @author Daniel Gerber <dgerber@informatik.uni-leipzig.de>
  */
+@Deprecated
 public class BoaPatternSelector {
 
   private static SolrServer server;
