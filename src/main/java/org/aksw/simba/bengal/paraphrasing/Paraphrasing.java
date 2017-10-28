@@ -5,7 +5,7 @@
 package org.aksw.simba.bengal.paraphrasing;
 
 import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -48,6 +48,17 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Paraphrasing.class);
 
+  // loads config file
+  static String file = "/config/bengal.properties";
+  public static Properties prop = new Properties();
+  static {
+    try {
+      prop.load(Paraphrasing.class.getResourceAsStream(file));
+    } catch (final IOException e) {
+      LOGGER.warn("Couldn't load config file".concat(file));
+    }
+  }
+
   public static Paraphrasing create() {
     Paraphrasing service = null;
     service = new Paraphrasing();
@@ -60,10 +71,6 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
   public String paraphrase(final String originalText) {
 
     try {
-      final Properties prop = new Properties();
-      final InputStream input = Paraphrasing.class.getResourceAsStream("/config/bengal.properties");
-      prop.load(input);
-
       final String modelPath = prop.getProperty("model");
       final String wordnetPath = prop.getProperty("dict");
 

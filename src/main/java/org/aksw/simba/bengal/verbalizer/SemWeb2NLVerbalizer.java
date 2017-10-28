@@ -6,10 +6,8 @@ package org.aksw.simba.bengal.verbalizer;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -19,13 +17,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Set;
 
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.MeaningSpan;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
+import org.aksw.simba.bengal.paraphrasing.Paraphrasing;
 import org.aksw.simba.bengal.triple2nl.TripleConverter;
 import org.aksw.simba.bengal.utils.DocumentHelper;
 import org.apache.jena.graph.Triple;
@@ -153,7 +151,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 
   /**
    * Replaces the first occurrence of the statements subject with a pronoun.
-   * 
+   *
    * @param document
    * @param s
    */
@@ -325,12 +323,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 
   private String getSurfaceForm(final String resource) throws IOException {
     try {
-      final Properties prop = new Properties();
-      final InputStream input = new FileInputStream(
-          "/Users/Kunal/workspace/BENGAL/src/main/resources/config/bengal.properties");
-      prop.load(input);
-
-      final String surfaceFormTSV = prop.getProperty("surfaceForms");
+      final String surfaceFormTSV = Paraphrasing.prop.getProperty("surfaceForms");
       // LOGGER.info("Getting surface forms from: " + surfaceFormTSV);
       final File file = new File(surfaceFormTSV);
       String label = "";
