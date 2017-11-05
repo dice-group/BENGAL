@@ -26,7 +26,6 @@ import java.util.HashSet;
 
 /**
  * Class holds a set of prepositions.
- * 
  * @author Axel Ngonga
  */
 public class Preposition extends HashSet<String> {
@@ -50,11 +49,8 @@ public class Preposition extends HashSet<String> {
 	}
 
 	/**
-	 * Determines whether the given token is contained in the list of
-	 * prepositions.
-	 * 
-	 * @param s
-	 *            the input token
+	 * Determines whether the given token is contained in the list of prepositions.
+	 * @param s the input token
 	 * @return TRUE if the token is a preposition, otherwise FALSE
 	 */
 	public boolean isPreposition(String s) {

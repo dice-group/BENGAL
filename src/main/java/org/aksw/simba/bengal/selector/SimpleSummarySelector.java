@@ -110,7 +110,7 @@ public class SimpleSummarySelector extends AbstractSelector {
 		classes.add("<http://dbpedia.org/ontology/Person>");
 		classes.add("<http://dbpedia.org/ontology/Place>");
 		classes.add("<http://dbpedia.org/ontology/Organisation>");
-		SimpleSummarySelector sss = new SimpleSummarySelector(classes, classes, "http://dbpedia.org/sparql", null);
+		SimpleSummarySelector sss = new SimpleSummarySelector(classes, classes, "http://pt.dbpedia.org/sparql", null);
 		sss.getNextStatements();
 		sss.getNextStatements();
 	}

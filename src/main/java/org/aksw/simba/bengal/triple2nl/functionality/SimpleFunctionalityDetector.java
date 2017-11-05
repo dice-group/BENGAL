@@ -19,11 +19,13 @@
  */
 package org.aksw.simba.bengal.triple2nl.functionality;
 
-public class SimpleFunctionalityDetector implements FunctionalityDetector {
+public class SimpleFunctionalityDetector implements FunctionalityDetector{
 
 	@Override
 	public boolean isFunctional(String uri) {
 		return true;
 	}
+
+	
 
 }

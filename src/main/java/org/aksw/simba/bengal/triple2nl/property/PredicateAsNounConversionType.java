@@ -27,7 +27,7 @@ package org.aksw.simba.bengal.triple2nl.property;
  *
  */
 public enum PredicateAsNounConversionType {
-
+	
 	/**
 	 * Predicate is combined with possessive form of subject.
 	 */
@@ -41,9 +41,10 @@ public enum PredicateAsNounConversionType {
 	 */
 	RELATIVE_CLAUSE_COMPLEMENTIZER,
 	/**
-	 * Relative clause that is not marked by an explicit relative pronoun or
-	 * complementizer such as who, which or that.
+	 * Relative clause that is not marked by an explicit relative pronoun or complementizer such as who, which or that.
 	 */
 	REDUCED_RELATIVE_CLAUSE,
+	
+	
 
 }

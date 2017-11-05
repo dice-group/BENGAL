@@ -22,14 +22,14 @@
  */
 package org.aksw.simba.bengal.triple2nl.gender;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
 /**
  * Returns the gender of a name by using Gender API at https://gender-api.com/
@@ -55,13 +55,12 @@ public class GenderAPIGenderDetector implements GenderDetector {
 			}
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
 				Gson gson = new Gson();
-				// JSON
-				// structure:{"name":"bob","gender":"male","samples":15549,"accuracy":99,"duration":"39ms"}
+				//JSON structure:{"name":"bob","gender":"male","samples":15549,"accuracy":99,"duration":"39ms"}
 				JsonObject json = gson.fromJson(reader, JsonObject.class);
 				System.out.println(json);
-				// get the gender value
+				//get the gender value
 				String gender = json.get("gender").getAsString();
-				// parse one of the possible values male, female, unknown
+				//parse one of the possible values male, female, unknown
 				return Gender.valueOf(gender.toUpperCase());
 			} catch (Exception e) {
 				e.printStackTrace();

@@ -54,6 +54,10 @@
 					<groupId>org.aksw.jena-sparql-api</groupId>
 					<artifactId>jena-sparql-api-core</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>uk.ac.abdn</groupId>
+					<artifactId>SimpleNLG</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -72,11 +76,8 @@
 			</exclusions>
 		</dependency>
 		<!-- needed to make avatar work -->
-		<dependency>
-			<groupId>uk.ac.abdn</groupId>
-			<artifactId>SimpleNLG</artifactId>
-			<version>4.4.7-SNAPSHOT</version>
-		</dependency>
+		<!-- <dependency> <groupId>uk.ac.abdn</groupId> <artifactId>SimpleNLG</artifactId> 
+			<version>4.4.7-SNAPSHOT</version> </dependency> -->
 		<dependency>
 			<groupId>com.carrotsearch</groupId>
 			<artifactId>hppc</artifactId>
@@ -142,6 +143,26 @@
 			<version>7.0.2</version>
 		</dependency>
 
+		<!-- Portuguese Version -->
+
+		<dependency>
+			<groupId>com.google.apis</groupId>
+			<artifactId>google-api-services-translate</artifactId>
+			<version>v2-rev51-1.22.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.annolab.tt4j</groupId>
+			<artifactId>org.annolab.tt4j</artifactId>
+			<version>1.0.16</version>
+		</dependency>
+
+		<dependency>
+			<groupId>uk.ac.abdn</groupId>
+			<artifactId>SimpleNLG</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/repository/snlgEnFrBP.jar</systemPath>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>

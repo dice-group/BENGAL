@@ -1,18 +1,13 @@
 package org.aksw.simba.bengal.triple2nl.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import net.sf.extjwnl.JWNLException;
+import net.sf.extjwnl.data.*;
+import net.sf.extjwnl.dictionary.Dictionary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.sf.extjwnl.JWNLException;
-import net.sf.extjwnl.data.IndexWord;
-import net.sf.extjwnl.data.POS;
-import net.sf.extjwnl.data.Pointer;
-import net.sf.extjwnl.data.PointerType;
-import net.sf.extjwnl.data.Synset;
-import net.sf.extjwnl.dictionary.Dictionary;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Utilities for WordNet.
@@ -20,7 +15,7 @@ import net.sf.extjwnl.dictionary.Dictionary;
  * @author Lorenz Buehmann
  */
 public class WordNetUtils {
-
+	
 	private static final Logger LOGGER = LoggerFactory.getLogger(WordNetUtils.class);
 
 	private Dictionary dict;
@@ -34,11 +29,9 @@ public class WordNetUtils {
 	}
 
 	/**
-	 * Returns the derived adjective with the same word form for the most common
-	 * sense of the given noun if exists.
+	 * Returns the derived adjective with the same word form for the most common sense of the given noun if exists.
 	 *
-	 * @param noun
-	 *            the noun
+	 * @param noun the noun
 	 */
 	public String getDerivedAdjective(String noun) {
 		try {
@@ -52,10 +45,10 @@ public class WordNetUtils {
 
 			for (Pointer pointer : pointers) {
 				Synset derivedSynset = pointer.getTargetSynset();
-				if (derivedSynset.getPOS() == POS.ADJECTIVE) {
-					// return derivedSynset.getWords().get(0).getLemma();
+				if(derivedSynset.getPOS() == POS.ADJECTIVE) {
+//					return derivedSynset.getWords().get(0).getLemma();
 				}
-				if (derivedSynset.getPOS() == POS.VERB) {
+				if(derivedSynset.getPOS() == POS.VERB) {
 					System.out.println(derivedSynset);
 				}
 			}
@@ -68,8 +61,7 @@ public class WordNetUtils {
 	/**
 	 * Gets all synsets for the given word as VERB and NOUN.
 	 *
-	 * @param word
-	 *            the word
+	 * @param word the word
 	 * @return a representative word for each synset
 	 */
 	public List<String> getAllSynsets(String word) {
@@ -78,7 +70,7 @@ public class WordNetUtils {
 		try {
 			// noun synsets
 			IndexWord iw = dict.getIndexWord(POS.NOUN, word);
-			if (iw != null) {
+			if(iw != null) {
 				for (Synset synset : iw.getSenses()) {
 					synsets.add("NOUN " + synset.getWords().get(0).getLemma());
 				}
@@ -86,7 +78,7 @@ public class WordNetUtils {
 
 			// verb synsets
 			iw = dict.getIndexWord(POS.VERB, word);
-			if (iw != null) {
+			if(iw != null) {
 				for (Synset synset : iw.getSenses()) {
 					synsets.add("VERB " + synset.getWords().get(0).getLemma());
 				}
@@ -99,7 +91,7 @@ public class WordNetUtils {
 	}
 
 	public static void main(String[] args) throws Exception {
-		String[] nouns = { "female", "male", "person", "book", "actor" };
+		String[] nouns = {"female", "male", "person", "book", "actor"};
 		WordNetUtils utils = new WordNetUtils();
 
 		for (String noun : nouns) {

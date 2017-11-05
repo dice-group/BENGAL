@@ -24,24 +24,16 @@ import java.io.InputStream;
 import java.util.Set;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLLiteral;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.*;
 
-public class StatisticalFunctionalityDetector implements FunctionalityDetector {
-
+public class StatisticalFunctionalityDetector implements FunctionalityDetector{
+	
 	private OWLOntology ontology;
 	private double threshold;
 	private OWLDataFactory dataFactory;
-
-	private final IRI confidencePropertyIRI = IRI
-			.create("http://www.dl-learner.org/ontologies/enrichment.owl#confidence");
-
+	
+	private final IRI confidencePropertyIRI = IRI.create("http://www.dl-learner.org/ontologies/enrichment.owl#confidence");
+	
 	public StatisticalFunctionalityDetector(File ontologyFile, double threshold) {
 		try {
 			OWLOntologyManager man = OWLManager.createOWLOntologyManager();
@@ -52,7 +44,7 @@ public class StatisticalFunctionalityDetector implements FunctionalityDetector {
 		}
 		this.threshold = threshold;
 	}
-
+	
 	public StatisticalFunctionalityDetector(InputStream is, double threshold) {
 		try {
 			OWLOntologyManager man = OWLManager.createOWLOntologyManager();
@@ -67,22 +59,21 @@ public class StatisticalFunctionalityDetector implements FunctionalityDetector {
 	@Override
 	public boolean isFunctional(String iri) {
 		// check as data property
-		Set<? extends OWLAxiom> axioms = ontology
-				.getFunctionalDataPropertyAxioms(dataFactory.getOWLDataProperty(IRI.create(iri)));
-		if (!axioms.isEmpty()) {
+		Set<? extends OWLAxiom> axioms = ontology.getFunctionalDataPropertyAxioms(dataFactory.getOWLDataProperty(IRI.create(iri)));
+		if(!axioms.isEmpty()){
 			Double confidence = getConfidenceValue(axioms.iterator().next());
 
-			if (confidence != null && confidence >= threshold) {
+			if(confidence != null && confidence >= threshold){
 				return true;
-			}
+			} 
 		}
 
-		// check as object property
+		//check as object property
 		axioms = ontology.getFunctionalObjectPropertyAxioms(dataFactory.getOWLObjectProperty(IRI.create(iri)));
-		if (!axioms.isEmpty()) {
+		if(!axioms.isEmpty()){
 			Double confidence = getConfidenceValue(axioms.iterator().next());
 
-			if (confidence != null && confidence >= threshold) {
+			if(confidence != null && confidence >= threshold){
 				return true;
 			}
 		}
@@ -90,42 +81,37 @@ public class StatisticalFunctionalityDetector implements FunctionalityDetector {
 	}
 
 	private Double getConfidenceValue(OWLAxiom axiom) {
-		Set<OWLAnnotation> annotations = axiom
-				.getAnnotations(dataFactory.getOWLAnnotationProperty(confidencePropertyIRI));
-		if (!annotations.isEmpty()) {
+		Set<OWLAnnotation> annotations = axiom.getAnnotations(dataFactory.getOWLAnnotationProperty(confidencePropertyIRI));
+		if(!annotations.isEmpty()) {
 			OWLLiteral val = (OWLLiteral) annotations.iterator().next().getValue();
 			return val.parseDouble();
 		}
 		return null;
 	}
-
-	public static void main(String[] args) throws Exception {
-
-		// String ontologyURL = "resources/dbpedia_3.8_enrichment.owl";
-		// OWLOntologyManager man = OWLManager.createOWLOntologyManager();
-		// OWLDataFactory dataFactory = man.getOWLDataFactory();
-		// OWLOntology ontology = man.loadOntologyFromOntologyDocument(new
-		// File(ontologyURL));
-		// Set<OWLAxiom> functionalAxioms = new HashSet<OWLAxiom>();
-		// for(OWLAxiom axiom :
-		// ontology.getAxioms(AxiomType.FUNCTIONAL_OBJECT_PROPERTY)){
-		// functionalAxioms.add(axiom);
-		// }
-		// for(OWLAxiom axiom :
-		// ontology.getAxioms(AxiomType.FUNCTIONAL_DATA_PROPERTY)){
-		// functionalAxioms.add(axiom);
-		// }
-		// OWLOntology functional =
-		// man.createOntology(IRI.create("http://sparql2nl.aksw.org/dbpedia"));
-		// man.addAxioms(functional, functionalAxioms);
-		// man.saveOntology(functional, new RDFXMLOntologyFormat(), new
-		// FileOutputStream(new
-		// File("resources/dbpedia_functional_axioms.owl")));
-		StatisticalFunctionalityDetector detector = new StatisticalFunctionalityDetector(
-				new File("resources/dbpedia_functional_axioms.owl"), 0.9);
+	
+	public static void main(String[] args) throws Exception{
+		
+//		String ontologyURL = "resources/dbpedia_3.8_enrichment.owl";
+//		OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+//		OWLDataFactory dataFactory = man.getOWLDataFactory();
+//		OWLOntology ontology = man.loadOntologyFromOntologyDocument(new File(ontologyURL));
+//		Set<OWLAxiom> functionalAxioms = new HashSet<OWLAxiom>();
+//		for(OWLAxiom axiom : ontology.getAxioms(AxiomType.FUNCTIONAL_OBJECT_PROPERTY)){
+//			functionalAxioms.add(axiom);
+//		}
+//		for(OWLAxiom axiom : ontology.getAxioms(AxiomType.FUNCTIONAL_DATA_PROPERTY)){
+//			functionalAxioms.add(axiom);
+//		}
+//		OWLOntology functional = man.createOntology(IRI.create("http://sparql2nl.aksw.org/dbpedia"));
+//		man.addAxioms(functional, functionalAxioms);
+//		man.saveOntology(functional, new RDFXMLOntologyFormat(), new FileOutputStream(new File("resources/dbpedia_functional_axioms.owl")));
+		StatisticalFunctionalityDetector detector = new StatisticalFunctionalityDetector(new File("/src/main/resources/dbpedia_functional_axioms.owl"), 0.9);
 		System.out.println(detector.isFunctional("http://dbpedia.org/ontology/occupation"));
 		System.out.println(detector.isFunctional("http://dbpedia.org/ontology/birthDate"));
 		System.out.println(detector.isFunctional("http://dbpedia.org/ontology/populationTotal"));
 	}
+	
+	
+
 
 }

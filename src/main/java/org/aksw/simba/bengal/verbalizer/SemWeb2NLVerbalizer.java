@@ -24,7 +24,7 @@ import org.aksw.gerbil.transfer.nif.MeaningSpan;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
 import org.aksw.simba.bengal.paraphrasing.Paraphrasing;
-import org.aksw.simba.bengal.triple2nl.TripleConverter;
+import org.aksw.simba.bengal.triple2nl.TripleConverterPortuguese;
 import org.aksw.simba.bengal.utils.DocumentHelper;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QuerySolution;
@@ -58,7 +58,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 					"http://dbpedia.org/class/yago/Wikicat", "http://commons.wikimedia.org/wiki",
 					"http://www.w3.org/2002/07/owl#sameAs", "http://dbpedia.org/ontology/thumbnail"));
 
-	private final TripleConverter converter;
+	private final TripleConverterPortuguese converter;
 	private final SparqlEndpoint endpoint;
 	private final boolean usePronouns;
 	private final boolean useSurfaceForms;
@@ -72,11 +72,11 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		this.endpoint = endpoint;
 		this.usePronouns = usePronouns;
 		this.useSurfaceForms = useSurfaceForms;
-		converter = new TripleConverter(this.endpoint);
+		converter = new TripleConverterPortuguese(this.endpoint);
 	}
 
 	@Override
-	public Document generateDocument(final List<Statement> triples) {
+	public Document generateDocument(final List<Statement> triples) throws IOException {
 		// generate sub documents
 		final List<Document> subDocs = new ArrayList<Document>(triples.size());
 		Document document;
@@ -398,7 +398,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 					+ "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
 					+ "PREFIX dbr: <http://dbpedia.org/resource/>" + "PREFIX dbo: <http://dbpedia.org/ontology/>"
 					+ "PREFIX owl: <http://www.w3.org/2002/07/owl#>" + "SELECT  DISTINCT ?com WHERE {" + " <" + uri
-					+ "> rdfs:comment ?com." + "FILTER (lang(?com) = 'en')." + "}";
+					+ "> rdfs:comment ?com." + "FILTER (lang(?com) = 'pt')." + "}";
 
 			// take care of graph issues. Only takes one graph. Seems like some
 			// sparql endpoint do
@@ -431,7 +431,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		}
 		try {
 			final String labelQuery = "SELECT ?label WHERE {<" + resource + "> "
-					+ "<http://www.w3.org/2000/01/rdf-schema#label> ?label. FILTER (lang(?label) = 'en')}";
+					+ "<http://www.w3.org/2000/01/rdf-schema#label> ?label. FILTER (lang(?label) = 'pt')}";
 
 			// take care of graph issues. Only takes one graph. Seems like some
 			// sparql endpoint do
@@ -528,7 +528,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		return true;
 	}
 
-	public static void main(final String args[]) {
+	public static void main(final String args[]) throws IOException {
 		final Set<String> classes = new HashSet<>();
 		classes.add("<http://dbpedia.org/ontology/Person>");
 		classes.add("<http://dbpedia.org/ontology/Place>");
@@ -538,15 +538,15 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		final SemWeb2NLVerbalizer verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia(), true, true);
 
 		final List<Statement> stmts = Arrays.asList(
-				new StatementImpl(new ResourceImpl("http://dbpedia.org/resource/Streaky_Bay,_South_Australia"),
-						new PropertyImpl("http://dbpedia.org/property/fedgov"),
-						new ResourceImpl("http://dbpedia.org/resource/Division_of_Grey")),
-				new StatementImpl(new ResourceImpl("http://dbpedia.org/resource/Streaky_Bay,_South_Australia"),
-						new PropertyImpl("http://dbpedia.org/property/location"),
-						new ResourceImpl("http://dbpedia.org/resource/Adelaide")),
-				new StatementImpl(new ResourceImpl("http://dbpedia.org/resource/Streaky_Bay,_South_Australia"),
-						new PropertyImpl("http://dbpedia.org/ontology/country"),
-						new ResourceImpl("http://dbpedia.org/resource/Australia")));
+				new StatementImpl(new ResourceImpl("http://pt.dbpedia.org/resource/Streaky_Bay,_South_Australia"),
+						new PropertyImpl("http://pt.dbpedia.org/property/fedgov"),
+						new ResourceImpl("http://pt.dbpedia.org/resource/Division_of_Grey")),
+				new StatementImpl(new ResourceImpl("http://pt.dbpedia.org/resource/Streaky_Bay,_South_Australia"),
+						new PropertyImpl("http://pt.dbpedia.org/property/location"),
+						new ResourceImpl("http://pt.dbpedia.org/resource/Adelaide")),
+				new StatementImpl(new ResourceImpl("http://pt.dbpedia.org/resource/Streaky_Bay,_South_Australia"),
+						new PropertyImpl("http://pt.dbpedia.org/ontology/country"),
+						new ResourceImpl("http://pt.dbpedia.org/resource/Australia")));
 
 		final Document doc = verbalizer.generateDocument(stmts);
 		System.out.println(doc);

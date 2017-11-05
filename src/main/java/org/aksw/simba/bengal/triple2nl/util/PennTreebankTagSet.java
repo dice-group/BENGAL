@@ -24,7 +24,6 @@ package org.aksw.simba.bengal.triple2nl.util;
 
 /**
  * The part-of-speech tags used in the Penn Treebank Project.
- * 
  * @author Lorenz Buehmann
  *
  */
@@ -32,17 +31,18 @@ public enum PennTreebankTagSet {
 	ADJECTIVE("JJ"), ADJECTIVE_COMPARATIVE(ADJECTIVE + "R"), ADJECTIVE_SUPERLATIVE(ADJECTIVE + "S"),
 
 	/*
-	 * This category includes most words that end in -ly as well as degree words
-	 * like quite, too and very, posthead modi ers like enough and indeed (as in
-	 * good enough, very well indeed), and negative markers like not, n't and
-	 * never.
+	 * This category includes most words that end in -ly as well as degree
+	 * words like quite, too and very, posthead modi ers like enough and
+	 * indeed (as in good enough, very well indeed), and negative markers like
+	 * not, n't and never.
 	 */
 	ADVERB("RB"),
 
 	/*
 	 * Adverbs with the comparative ending -er but without a strictly
-	 * comparative meaning, like <i>later</i> in <i>We can always come by
-	 * later</i>, should simply be tagged as RB.
+	 * comparative
+	 * meaning, like <i>later</i> in <i>We can always come by later</i>, should
+	 * simply be tagged as RB.
 	 */
 	ADVERB_COMPARATIVE(ADVERB + "R"), ADVERB_SUPERLATIVE(ADVERB + "S"),
 
@@ -66,7 +66,7 @@ public enum PennTreebankTagSet {
 	 * relative pronoun.
 	 */
 	DETERMINER_WH("W" + DETERMINER), EXISTENTIAL_THERE("EX"), FOREIGN_WORD("FW"),
-
+	
 	LIST_ITEM_MARKER("LS"),
 
 	NOUN("NN"), NOUN_PLURAL(NOUN + "S"), NOUN_PROPER_SINGULAR(NOUN + "P"), NOUN_PROPER_PLURAL(NOUN + "PS"),
@@ -89,10 +89,11 @@ public enum PennTreebankTagSet {
 
 	/*
 	 * This tag should be used for mathematical, scientific and technical
-	 * symbols or expressions that aren't English words. It should not used for
-	 * any and all technical expressions. For instance, the names of chemicals,
-	 * units of measurements (including abbreviations thereof) and the like
-	 * should be tagged as nouns.
+	 * symbols
+	 * or expressions that aren't English words. It should not used for any and
+	 * all technical expressions. For instance, the names of chemicals, units of
+	 * measurements (including abbreviations thereof) and the like should be
+	 * tagged as nouns.
 	 */
 	SYMBOL("SYM"), TO("TO"),
 
@@ -102,9 +103,8 @@ public enum PennTreebankTagSet {
 	 */
 	INTERJECTION("UH"),
 
-	VERB("VB"), VERB_PAST_TENSE(VERB + "D"), VERB_PARTICIPLE_PRESENT(VERB + "G"), VERB_PARTICIPLE_PAST(
-			VERB + "N"), VERB_SINGULAR_PRESENT_NONTHIRD_PERSON(
-					VERB + "P"), VERB_SINGULAR_PRESENT_THIRD_PERSON(VERB + "Z"),
+	VERB("VB"), VERB_PAST_TENSE(VERB + "D"), VERB_PARTICIPLE_PRESENT(VERB + "G"), VERB_PARTICIPLE_PAST(VERB + "N"), VERB_SINGULAR_PRESENT_NONTHIRD_PERSON(
+			VERB + "P"), VERB_SINGULAR_PRESENT_THIRD_PERSON(VERB + "Z"),
 
 	/*
 	 * This category includes all verbs that don't take an -s ending in the
@@ -113,18 +113,33 @@ public enum PennTreebankTagSet {
 	 */
 	VERB_MODAL("MD"),
 
-	// clause level
-	S("S"), SBAR("SBAR"), SBARQ("SBARQ"), SINV("SINV"), SQ("SQ"),
-
-	// phrase level
-	ADJECTIVE_PHRASE("ADJP"), ADVERB_PHRASE("ADVP"), NOUN_PHRASE("NP"), VERB_PHRASE("VP"), PREPOSITIONAL_PHRASE(
-			"PP"), FRAGMENT("FRAG"),
-
-	// punctuation
+	
+	
+	//clause level
+	S("S"),
+	SBAR("SBAR"),
+	SBARQ("SBARQ"),
+	SINV("SINV"),
+	SQ("SQ"),
+	
+	
+	//phrase level
+	ADJECTIVE_PHRASE("ADJP"),
+	ADVERB_PHRASE("ADVP"),
+	NOUN_PHRASE("NP"),
+	VERB_PHRASE("VP"),
+	PREPOSITIONAL_PHRASE("PP"),
+	FRAGMENT("FRAG"),
+	
+	
+	
+	
+	//punctuation
 	/*
 	 * Stanford.
 	 */
 	SENTENCE_TERMINATOR(".");
+	
 
 	private final String tag;
 

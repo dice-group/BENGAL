@@ -22,6 +22,12 @@
  */
 package org.aksw.simba.bengal.triple2nl.gender;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Detects the gender based on two lists of common names for male and female.
  *
@@ -41,13 +47,12 @@ public class DictionaryBasedGenderDetector implements GenderDetector {
 
 	public static void main(String[] args) throws Exception {
 		DictionaryBasedGenderDetector genderDetector = new DictionaryBasedGenderDetector();
-		System.out.println(genderDetector.getGender("Axel"));
+		System.out.println(genderDetector.getGender("Tarsila do Amaral"));
 	}
 
 	/*
 	 * (non-Javadoc) @see
-	 * org.aksw.sparql2nl.entitysummarizer.gender.GenderDetector#getGender(java.
-	 * lang.String)
+	 * org.aksw.sparql2nl.entitysummarizer.gender.GenderDetector#getGender(java.lang.String)
 	 */
 	@Override
 	public Gender getGender(String name) {

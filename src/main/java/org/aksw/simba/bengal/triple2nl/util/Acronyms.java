@@ -10,7 +10,7 @@ public class Acronyms {
 	}
 
 	public static void main(String[] args) throws Exception {
-		String[] tests = { "on", "BMW", "ABBA", "but" };
+		String[] tests = {"on", "BMW", "ABBA", "but"};
 		for (String s : tests) {
 			System.out.println(s + ":" + Acronyms.isAcronym(s));
 		}

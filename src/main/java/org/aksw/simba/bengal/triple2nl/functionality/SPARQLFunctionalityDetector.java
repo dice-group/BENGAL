@@ -32,20 +32,16 @@ import uk.ac.manchester.cs.owl.owlapi.OWLObjectPropertyImpl;
  * @author Lorenz Buehmann
  *
  */
-public class SPARQLFunctionalityDetector implements FunctionalityDetector {
-
+public class SPARQLFunctionalityDetector implements FunctionalityDetector{
+	
 	private SPARQLReasoner sparqlReasoner;
 
 	public SPARQLFunctionalityDetector(QueryExecutionFactory qef) {
 		sparqlReasoner = new SPARQLReasoner(qef);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.aksw.triple2nl.functionality.FunctionalityDetector#isFunctional(java.
-	 * lang.String)
+	/* (non-Javadoc)
+	 * @see org.aksw.triple2nl.functionality.FunctionalityDetector#isFunctional(java.lang.String)
 	 */
 	@Override
 	public boolean isFunctional(String uri) {

@@ -24,10 +24,9 @@ package org.aksw.simba.bengal.triple2nl.util;
 
 import java.util.Comparator;
 
+import com.google.common.collect.ComparisonChain;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.util.NodeComparator;
-
-import com.google.common.collect.ComparisonChain;
 
 /**
  * Comparator to sort a list of triples by subject, predicate, and object to
@@ -36,20 +35,20 @@ import com.google.common.collect.ComparisonChain;
  * @author Lorenz Buehmann
  *
  */
-public class TripleComparator implements Comparator<Triple> {
-
+public class TripleComparator implements Comparator<Triple>{
+	
 	private final NodeComparator nodeComparator = new NodeComparator();
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/* (non-Javadoc)
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	public int compare(Triple t1, Triple t2) {
-		return ComparisonChain.start().compare(t1.getSubject(), t2.getSubject(), nodeComparator)
-				.compare(t1.getPredicate(), t2.getPredicate(), nodeComparator)
-				.compare(t1.getObject(), t2.getObject(), nodeComparator).result();
+		return ComparisonChain.start()
+		.compare(t1.getSubject(), t2.getSubject(), nodeComparator)
+		.compare(t1.getPredicate(), t2.getPredicate(), nodeComparator)
+		.compare(t1.getObject(), t2.getObject(), nodeComparator)
+		.result();
 	}
 
 }

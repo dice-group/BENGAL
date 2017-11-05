@@ -19,7 +19,7 @@ import org.aksw.jena_sparql_api.delay.core.QueryExecutionFactoryDelay;
 import org.aksw.jena_sparql_api.http.QueryExecutionFactoryHttp;
 import org.aksw.simba.bengal.selector.ResourceComparator;
 import org.aksw.simba.bengal.selector.StatementComparator;
-import org.aksw.simba.bengal.triple2nl.converter.DefaultIRIConverter;
+import org.aksw.simba.bengal.triple2nl.converter.DefaultIRIConverterPortuguese;
 import org.aksw.simba.bengal.triple2nl.converter.IRIConverter;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -96,7 +96,7 @@ public class AvatarVerbalizer implements Comparator<String> {
 		this.r = new Random(seed);
 		verbalizer = new Verbalizer(SparqlEndpoint.getEndpointDBpedia(), CACHE_DIRECTORY);
 		this.qef = qef;
-		uriConverter = new DefaultIRIConverter(qef, CACHE_DIRECTORY);
+		uriConverter = new DefaultIRIConverterPortuguese(qef, CACHE_DIRECTORY);
 	}
 
 	/**
@@ -175,21 +175,6 @@ public class AvatarVerbalizer implements Comparator<String> {
 				qexec.close();
 			}
 		}
-
-		// sort the statements
-		// Map<Integer, Statement> map = new HashMap<>();
-		// StmtIterator iter = m.listStatements();
-		// while (iter.hasNext()) {
-		// Statement s = iter.next();
-		// map.put(s.hashCode(), s);
-		// }
-		// List<Integer> keys = new ArrayList<>(map.keySet());
-		// Collections.sort(keys);
-		// List<Statement> result = new ArrayList<>();
-		// for (int k : keys) {
-		// result.add(map.get(k));
-		// }
-		// return result;
 		return sortStatements(m.listStatements());
 	}
 

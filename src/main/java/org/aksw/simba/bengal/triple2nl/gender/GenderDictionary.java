@@ -15,14 +15,11 @@ public class GenderDictionary {
 
 	private boolean caseSensitive = true;
 
-	protected GenderDictionary() {
-	}
+	protected GenderDictionary(){}
 
 	/**
-	 * @param male
-	 *            the set of male gender names
-	 * @param female
-	 *            the set of female gender names
+	 * @param male   the set of male gender names
+	 * @param female the set of female gender names
 	 */
 	public GenderDictionary(Set<String> male, Set<String> female) {
 		this.male = male;
@@ -32,8 +29,7 @@ public class GenderDictionary {
 	/**
 	 * Checks whether the name is contained in the list of male gender names.
 	 *
-	 * @param name
-	 *            the name
+	 * @param name the name
 	 * @return whether the name is contained in the list of male gender names
 	 */
 	public boolean isMale(String name) {
@@ -43,8 +39,7 @@ public class GenderDictionary {
 	/**
 	 * Checks whether the name is contained in the list of female gender names.
 	 *
-	 * @param name
-	 *            the name
+	 * @param name the name
 	 * @return whether the name is contained in the list of female gender names
 	 */
 	public boolean isFemale(String name) {

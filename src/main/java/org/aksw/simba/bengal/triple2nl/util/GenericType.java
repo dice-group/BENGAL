@@ -21,12 +21,15 @@ package org.aksw.simba.bengal.triple2nl.util;
 
 /**
  * Generic types and its textual represnatation.
- * 
  * @author Lorenz Buehmann
  *
  */
 public enum GenericType {
-	ENTITY("entity"), VALUE("value"), RELATION("property"), TYPE("type"), UNKNOWN("UltimativeGenericEntity");
+	ENTITY("entity"),
+	VALUE("value"),
+	RELATION("property"),
+	TYPE("type"),
+	UNKNOWN("UltimativeGenericEntity");
 
 	private final String nlr;
 
