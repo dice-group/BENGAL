@@ -328,11 +328,16 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 			final BufferedReader br = new BufferedReader(new FileReader(file));
 			while (br.ready()) {
 				final String[] line = br.readLine().split("\t");
+				try {
 				final String subject = line[0];
 				final String object = line[1];
 				if (subject.equals(resource)) {
 					label = object;
 					break;
+				}
+				}
+				catch(Exception e){
+				continue;	
 				}
 			}
 			br.close();
