@@ -38,7 +38,7 @@ import org.aksw.simba.bengal.triple2nl.converter.LiteralConverter;
 import org.aksw.simba.bengal.triple2nl.gender.DictionaryBasedGenderDetector;
 import org.aksw.simba.bengal.triple2nl.gender.Gender;
 import org.aksw.simba.bengal.triple2nl.gender.GenderDetector;
-import org.aksw.simba.bengal.triple2nl.nlp.relation.BoaPatternSelector;
+//import org.aksw.simba.bengal.triple2nl.nlp.relation.BoaPatternSelector;
 import org.aksw.simba.bengal.triple2nl.nlp.stemming.PlingStemmer;
 import org.aksw.simba.bengal.triple2nl.property.PropertyVerbalization;
 import org.aksw.simba.bengal.triple2nl.property.PropertyVerbalizationType;
@@ -453,29 +453,6 @@ public class TripleConverter {
 					p.setVerb(pp.getInfinitiveForm(predicateAsString));
 					p.setObject(objectElement);
 					p.setFeature(Feature.TENSE, propertyVerbalization.getTense());
-				} // in other cases, use the BOA pattern
-				else {
-
-					List<org.aksw.simba.bengal.triple2nl.nlp.relation.Pattern> l = BoaPatternSelector
-							.getNaturalLanguageRepresentation(predicate.toString(), 1);
-					if (l.size() > 0) {
-						String boaPattern = l.get(0).naturalLanguageRepresentation;
-						// range before domain
-						if (boaPattern.startsWith("?R?")) {
-							p.setSubject(subjectElement);
-							p.setObject(objectElement);
-						} else {
-							p.setObject(subjectElement);
-							p.setSubject(objectElement);
-						}
-						p.setVerb(BoaPatternSelector.getNaturalLanguageRepresentation(predicate.toString(), 1)
-								.get(0).naturalLanguageRepresentationWithoutVariables);
-					} // last resort, i.e., no BOA pattern found
-					else {
-						p.setSubject(subjectElement);
-						p.setVerb("be related via \"" + predicateAsString + "\" to");
-						p.setObject(objectElement);
-					}
 				}
 			}
 		}
@@ -497,10 +474,6 @@ public class TripleConverter {
 		if (negated) {
 			p.setFeature(Feature.NEGATED, negated);
 		}
-
-		// set present time as tense
-		// p.setFeature(Feature.TENSE, Tense.PRESENT);
-		// System.out.println(realiser.realise(p));
 		return p;
 	}
 

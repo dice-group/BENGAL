@@ -73,18 +73,24 @@ public abstract class AbstractSelector implements TripleSelector {
 			if (targetClasses != null) {
 				if (targetClasses.isEmpty()) {
 					sparqlQueryString = "SELECT ?p ?o WHERE {<" + res
-							+ "> ?p ?o. ?o <http://www.w3.org/2000/01/rdf-schema#label> [].}";
+							+ "> ?p ?o. ?o <http://www.w3.org/2000/01/rdf-schema#label> []."
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p
 					// ?o.}";
 				} else {
 					sparqlQueryString = "SELECT ?p ?o WHERE {";
 					sparqlQueryString = sparqlQueryString + " {<" + res
-							+ "> ?p ?o. ?o  <http://www.w3.org/2000/01/rdf-schema#label> [].}";
+							+ "> ?p ?o. ?o  <http://www.w3.org/2000/01/rdf-schema#label> []."
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = sparqlQueryString + " {<" + res + ">
 					// ?p ?o.}";
 					for (String c : targetClasses) {
-						sparqlQueryString = sparqlQueryString + "{ ?o a " + c
-								+ ". ?o  <http://www.w3.org/2000/01/rdf-schema#label> []. } UNION ";
+						sparqlQueryString = sparqlQueryString + "{ ?o a " + c + ". "
+						// + "?o <http://www.w3.org/2000/01/rdf-schema#label>
+						// []. "
+								+ "} UNION ";
 					}
 					sparqlQueryString = sparqlQueryString.substring(0, sparqlQueryString.length() - 6);
 					sparqlQueryString = sparqlQueryString + " }";
@@ -112,18 +118,24 @@ public abstract class AbstractSelector implements TripleSelector {
 			if (targetClasses != null) {
 				if (targetClasses.isEmpty()) {
 					sparqlQueryString = "SELECT ?p ?o WHERE {<" + res
-							+ "> ?p ?o. ?o <http://www.w3.org/2000/01/rdf-schema#label> [].}";
+							+ "> ?p ?o. ?o <http://www.w3.org/2000/01/rdf-schema#label> []."
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p
 					// ?o.}";
 				} else {
 					sparqlQueryString = "SELECT ?p ?o WHERE {";
 					sparqlQueryString = sparqlQueryString + " {?o ?p <" + res
-							+ ">. ?o  <http://www.w3.org/2000/01/rdf-schema#label> [].}";
+							+ ">. ?o  <http://www.w3.org/2000/01/rdf-schema#label> []."
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = sparqlQueryString + " {?o ?p <" + res
 					// + ">.}";
 					for (String c : targetClasses) {
-						sparqlQueryString = sparqlQueryString + "{ ?o a " + c
-								+ ". ?o  <http://www.w3.org/2000/01/rdf-schema#label> []. } UNION ";
+						sparqlQueryString = sparqlQueryString + "{ ?o a " + c + ". "
+						// + "?o <http://www.w3.org/2000/01/rdf-schema#label>
+						// []. "
+								+ "} UNION ";
 					}
 					sparqlQueryString = sparqlQueryString.substring(0, sparqlQueryString.length() - 6);
 					sparqlQueryString = sparqlQueryString + " }";
@@ -182,19 +194,27 @@ public abstract class AbstractSelector implements TripleSelector {
 		try {
 			if (targetClasses != null) {
 				if (targetClasses.isEmpty()) {
-					sparqlQueryString = "SELECT ?p ?o WHERE {<" + res
-							+ "> ?p ?o. ?o  <http://www.w3.org/2000/01/rdf-schema#label> [].}";
+					sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p ?o. "
+							+ "?p  <http://www.w3.org/2000/01/rdf-schema#label> []."
+							+ "?o  <http://www.w3.org/2000/01/rdf-schema#label> []."
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p
 					// ?o.}";
 				} else {
 					sparqlQueryString = "SELECT ?p ?o WHERE {";
-					sparqlQueryString = sparqlQueryString + " {<" + res
-							+ "> ?p ?o. ?o  <http://www.w3.org/2000/01/rdf-schema#label> [].}";
+					sparqlQueryString = sparqlQueryString + " {<" + res + "> ?p ?o. "
+							+ "?p  <http://www.w3.org/2000/01/rdf-schema#label> []."
+							+ "?o  <http://www.w3.org/2000/01/rdf-schema#label> []."
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = sparqlQueryString + " {<" + res + ">
 					// ?p ?o.}";
 					for (String c : targetClasses) {
-						sparqlQueryString = sparqlQueryString + "{ ?o a " + c
-								+ ". ?o  <http://www.w3.org/2000/01/rdf-schema#label> []. } UNION ";
+						sparqlQueryString = sparqlQueryString + "{ ?o a " + c + ". "
+						// + "?o <http://www.w3.org/2000/01/rdf-schema#label>
+						// []. "
+								+ "} UNION ";
 					}
 					sparqlQueryString = sparqlQueryString.substring(0, sparqlQueryString.length() - 6);
 					sparqlQueryString = sparqlQueryString + " }";

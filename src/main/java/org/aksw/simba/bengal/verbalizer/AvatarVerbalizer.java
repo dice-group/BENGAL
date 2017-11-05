@@ -482,26 +482,7 @@ public class AvatarVerbalizer implements Comparator<String> {
 		}
 
 		qef = new QueryExecutionFactoryDelay(qef, DELAY);
-
-		// if (cacheDirectory != null) {
-		// CacheBackend cacheBackend = CacheCoreH2.create(true, cacheDirectory,
-		// endpoint.replaceAll("[:/]", "_"),
-		// CACHE_TIME_TO_LIVE, true);
-		// CacheFrontend cacheFrontend = new CacheFrontendImpl(cacheBackend);
-		// qef = new QueryExecutionFactoryCacheEx(qef, cacheFrontend);
-		// } else {
-		// LOGGER.info("The cache directory has not been set. Creating an
-		// uncached SPARQL client.");
-		// }
-
-		// try {
-		// return new QueryExecutionFactoryPaginated(qef, 100);
-		// } catch (Exception e) {
-		// LOGGER.warn("Couldn't create Factory with pagination. Returning
-		// Factory without pagination. Exception: {}",
-		// e.getLocalizedMessage());
-		// return qef;
-		// }
+		
 		return qef;
 	}
 

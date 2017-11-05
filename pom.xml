@@ -45,23 +45,37 @@
 			<groupId>org.aksw.semweb2nl</groupId>
 			<artifactId>triple2nl</artifactId>
 			<version>0.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.dllearner</groupId>
+					<artifactId>components-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.aksw.jena-sparql-api</groupId>
+					<artifactId>jena-sparql-api-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.aksw.semweb2nl</groupId>
 			<artifactId>avatar</artifactId>
 			<version>0.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.dllearner</groupId>
+					<artifactId>components-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.aksw.jena-sparql-api</groupId>
+					<artifactId>jena-sparql-api-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- needed to make avatar work -->
 		<dependency>
 			<groupId>uk.ac.abdn</groupId>
 			<artifactId>SimpleNLG</artifactId>
 			<version>4.4.7-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.memetix</groupId>
-			<artifactId>microsoft-translator-java-api</artifactId>
-			<version>0.6.1</version>
-			<type>jar</type>
 		</dependency>
 		<dependency>
 			<groupId>com.carrotsearch</groupId>
@@ -84,6 +98,11 @@
 			<artifactId>solr-solrj</artifactId>
 			<version>5.0-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>org.dllearner</groupId>
+			<artifactId>components-core</artifactId>
+			<version>1.3.0</version>
+		</dependency>
 		<!-- needed to make paraphrasing work -->
 		<dependency>
 			<groupId>wordnet</groupId>
@@ -91,12 +110,37 @@
 			<version>1.0</version>
 		</dependency>
 		<dependency>
-			<groupId>edu.stanford.nlp</groupId>
-			<artifactId>stanford-corenlp</artifactId>
-			<version>3.5.0</version>
-			<classifier>models</classifier>
+			<groupId>org.hobbit</groupId>
+			<artifactId>gerbil-benchmark</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<groupId>it.unimi.dsi</groupId>
+					<artifactId>fastutil</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.hobbit</groupId>
+					<artifactId>core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>apache-jena-libs</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-arq</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-
+		<dependency>
+			<groupId>it.unimi.dsi</groupId>
+			<artifactId>fastutil</artifactId>
+			<version>7.0.2</version>
+		</dependency>
 
 	</dependencies>
 

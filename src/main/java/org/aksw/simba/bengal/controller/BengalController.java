@@ -40,192 +40,188 @@ import org.slf4j.LoggerFactory;
  *
  * @author ngonga
  * @author Michael R&ouml;der (roeder@informatik.uni-leipzig.de)
+ * @author diegomoussallem
  */
 public class BengalController {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(BengalController.class);
-  private static final String NUMBEROFDOCS = "numberofdocs";
+	private static final Logger LOGGER = LoggerFactory.getLogger(BengalController.class);
+	private static final String NUMBEROFDOCS = "numberofdocs";
+	private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 1;
+	private static final long SEED = 21;
+	private static final int MIN_SENTENCE = 3;
+	private static final int MAX_SENTENCE = 10;
+	private static final SelectorType SELECTOR_TYPE = SelectorType.STAR;
+	private static final boolean USE_PARAPHRASING = true;
+	private static final boolean USE_PRONOUNS = true;
+	private static final boolean USE_SURFACEFORMS = true;
+	private static final boolean USE_AVATAR = false;
+	private static final boolean USE_ONLY_OBJECT_PROPERTIES = false;
+	private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 500;
 
-  private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 1;
-  private static final long SEED = 21;
-  private static final int MIN_SENTENCE = 90;
-  private static final int MAX_SENTENCE = 400;
-  private static final SelectorType SELECTOR_TYPE = SelectorType.STAR;
-  private static final boolean USE_PARAPHRASING = true;
-  private static final boolean USE_PRONOUNS = false;
-  private static final boolean USE_SURFACEFORMS = true;
-  private static final boolean USE_AVATAR = false;
-  private static final boolean USE_ONLY_OBJECT_PROPERTIES = false;
-  private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 500;
+	public static void main(final String args[]) {
+		String typeSubString = "";
+		if (USE_AVATAR) {
+			typeSubString = "summary";
+		} else {
+			switch (SELECTOR_TYPE) {
+			case STAR: {
+				typeSubString = "star";
+				break;
+			}
+			case HYBRID: {
+				typeSubString = "hybrid";
+				break;
+			}
+			case PATH: {
+				typeSubString = "path";
+				break;
+			}
+			case SIM_STAR: {
+				typeSubString = "sym";
+				break;
+			}
+			}
+		}
+		final String corpusName = "bengal_" + typeSubString + "_" + (USE_PRONOUNS ? "pronoun_" : "")
+				+ (USE_SURFACEFORMS ? "surface_" : "") + (USE_PARAPHRASING ? "para_" : "")
+				+ Integer.toString(DEFAULT_NUMBER_OF_DOCUMENTS) + ".ttl";
+		BengalController.generateCorpus(new HashMap<String, String>(), "http://dbpedia.org/sparql", corpusName);
+		// This is just to check whether the created documents make sense
+		// If the entities have a bad positioning inside the documents the
+		// parser should print warn messages
+		final NIFParser parser = new TurtleNIFParser();
+		FileInputStream fin = null;
+		try {
+			fin = new FileInputStream(corpusName);
+			parser.parseNIF(fin);
+		} catch (final FileNotFoundException e) {
+			e.printStackTrace();
+		} finally {
+			IOUtils.closeQuietly(fin);
+		}
+	}
 
-  public static void main(final String args[]) {
-    String typeSubString = "";
-    if (USE_AVATAR) {
-      typeSubString = "summary";
-    } else {
-      switch (SELECTOR_TYPE) {
-        case STAR: {
-          typeSubString = "star";
-          break;
-        }
-        case HYBRID: {
-          typeSubString = "hybrid";
-          break;
-        }
-        case PATH: {
-          typeSubString = "path";
-          break;
-        }
-        case SIM_STAR: {
-          typeSubString = "sym";
-          break;
-        }
-      }
-    }
-    final String corpusName = "bengal_" + typeSubString + "_" + (USE_PRONOUNS ? "pronoun_" : "")
-        + (USE_SURFACEFORMS ? "surface_" : "") + (USE_PARAPHRASING ? "para_" : "")
-        + Integer.toString(DEFAULT_NUMBER_OF_DOCUMENTS) + ".ttl";
-    BengalController.generateCorpus(new HashMap<String, String>(), "http://dbpedia.org/sparql",
-        corpusName);
-    // This is just to check whether the created documents make sense
-    // If the entities have a bad positioning inside the documents the
-    // parser should print warn messages
-    final NIFParser parser = new TurtleNIFParser();
-    FileInputStream fin = null;
-    try {
-      fin = new FileInputStream(corpusName);
-      parser.parseNIF(fin);
-    } catch (final FileNotFoundException e) {
-      e.printStackTrace();
-    } finally {
-      IOUtils.closeQuietly(fin);
-    }
-  }
+	public static void generateCorpus(Map<String, String> parameters, final String endpoint, final String corpusName) {
+		if (parameters == null) {
+			parameters = new HashMap<>();
+		}
 
-  public static void generateCorpus(Map<String, String> parameters, final String endpoint,
-      final String corpusName) {
-    if (parameters == null) {
-      parameters = new HashMap<>();
-    }
+		final Set<String> classes = new HashSet<>();
+		classes.add("<http://dbpedia.org/ontology/Person>");
+		classes.add("<http://dbpedia.org/ontology/Place>");
+		classes.add("<http://dbpedia.org/ontology/Organisation>");
 
-    final Set<String> classes = new HashSet<>();
-    classes.add("<http://dbpedia.org/ontology/Person>");
-    // classes.add("<http://dbpedia.org/ontology/Place>");
-    // classes.add("<http://dbpedia.org/ontology/Organisation>");
+		// instantiate components;
+		final TripleSelectorFactory factory = new TripleSelectorFactory();
+		TripleSelector tripleSelector = null;
+		BVerbalizer verbalizer = null;
+		AvatarVerbalizer alernativeVerbalizer = null;
+		if (USE_AVATAR) {
+			alernativeVerbalizer = AvatarVerbalizer.create(classes,
+					USE_ONLY_OBJECT_PROPERTIES ? classes : new HashSet<>(), endpoint, null, SEED, false);
+			if (alernativeVerbalizer == null) {
+				return;
+			}
+		} else {
+			tripleSelector = factory.create(SELECTOR_TYPE, classes,
+					USE_ONLY_OBJECT_PROPERTIES ? classes : new HashSet<>(), endpoint, null, MIN_SENTENCE, MAX_SENTENCE,
+					SEED);
+			verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia(), USE_PRONOUNS, USE_SURFACEFORMS);
+		}
+		Paraphraser paraphraser = null;
+		if (USE_PARAPHRASING) {
+			final ParaphraseService paraService = Paraphrasing.create();
+			if (paraService != null) {
+				paraphraser = new ParaphraserImpl(paraService);
+			} else {
+				LOGGER.error("Couldn't create paraphrasing service. Aborting.");
+				return;
+			}
+		}
 
-    // instantiate components;
-    final TripleSelectorFactory factory = new TripleSelectorFactory();
-    TripleSelector tripleSelector = null;
-    BVerbalizer verbalizer = null;
-    AvatarVerbalizer alernativeVerbalizer = null;
-    if (USE_AVATAR) {
-      alernativeVerbalizer = AvatarVerbalizer.create(classes,
-          USE_ONLY_OBJECT_PROPERTIES ? classes : new HashSet<>(), endpoint, null, SEED, false);
-      if (alernativeVerbalizer == null) {
-        return;
-      }
-    } else {
-      tripleSelector = factory.create(SELECTOR_TYPE, classes,
-          USE_ONLY_OBJECT_PROPERTIES ? classes : new HashSet<>(), endpoint, null, MIN_SENTENCE,
-          MAX_SENTENCE, SEED);
-      verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia(), USE_PRONOUNS,
-          USE_SURFACEFORMS);
-    }
-    Paraphraser paraphraser = null;
-    if (USE_PARAPHRASING) {
-      final ParaphraseService paraService = Paraphrasing.create();
-      if (paraService != null) {
-        paraphraser = new ParaphraserImpl(paraService);
-      } else {
-        LOGGER.error("Couldn't create paraphrasing service. Aborting.");
-        return;
-      }
-    }
+		// Get the number of documents from the parameters
+		int numberOfDocuments = DEFAULT_NUMBER_OF_DOCUMENTS;
+		if (parameters.containsKey(NUMBEROFDOCS)) {
+			try {
+				numberOfDocuments = Integer.parseInt(parameters.get(NUMBEROFDOCS));
+			} catch (final Exception e) {
+				LOGGER.error("Could not parse number of documents");
+			}
+		}
+		List<Statement> triples;
+		Document document = null;
+		final List<Document> documents = new ArrayList<>();
+		int counter = 1;
+		while (documents.size() < numberOfDocuments) {
+			if (USE_AVATAR) {
+				document = alernativeVerbalizer.nextDocument();
+			} else {
+				// select triples
+				triples = tripleSelector.getNextStatements();
+				if ((triples != null) && (triples.size() >= MIN_SENTENCE)) {
+					// create document
+					document = verbalizer.generateDocument(triples);
+					if (document != null) {
+						final List<NumberOfVerbalizedTriples> tripleCounts = document
+								.getMarkings(NumberOfVerbalizedTriples.class);
+						if ((tripleCounts.size() > 0) && (tripleCounts.get(0).getNumberOfTriples() < MIN_SENTENCE)) {
+							LOGGER.error(
+									"The generated document does not have enough verbalized triples. It will be discarded.");
+							document = null;
+						}
+					}
+					if (document != null) {
+						// paraphrase document
+						if (paraphraser != null) {
+							try {
+								document = paraphraser.getParaphrase(document);
+							} catch (final Exception e) {
+								LOGGER.error("Got exception from paraphraser. Using the original document.", e);
+							}
+						}
+					}
+				}
+			}
+			// If the generation and paraphrasing were successful
+			if (document != null) {
+				LOGGER.info("Created document #" + counter);
+				document.setDocumentURI("http://aksw.org/generated/" + counter);
+				counter++;
+				documents.add(document);
+				document = null;
+			}
+			try {
+				if (!USE_AVATAR) {
+					Thread.sleep(WAITING_TIME_BETWEEN_DOCUMENTS);
+				}
+			} catch (final InterruptedException e) {
+			}
+		}
 
-    // Get the number of documents from the parameters
-    int numberOfDocuments = DEFAULT_NUMBER_OF_DOCUMENTS;
-    if (parameters.containsKey(NUMBEROFDOCS)) {
-      try {
-        numberOfDocuments = Integer.parseInt(parameters.get(NUMBEROFDOCS));
-      } catch (final Exception e) {
-        LOGGER.error("Could not parse number of documents");
-      }
-    }
-    List<Statement> triples;
-    Document document = null;
-    final List<Document> documents = new ArrayList<>();
-    int counter = 0;
-    while (documents.size() < numberOfDocuments) {
-      if (USE_AVATAR) {
-        document = alernativeVerbalizer.nextDocument();
-      } else {
-        // select triples
-        triples = tripleSelector.getNextStatements();
-        if ((triples != null) && (triples.size() >= MIN_SENTENCE)) {
-          // create document
-          document = verbalizer.generateDocument(triples);
-          if (document != null) {
-            final List<NumberOfVerbalizedTriples> tripleCounts =
-                document.getMarkings(NumberOfVerbalizedTriples.class);
-            if ((tripleCounts.size() > 0)
-                && (tripleCounts.get(0).getNumberOfTriples() < MIN_SENTENCE)) {
-              LOGGER.error(
-                  "The generated document does not have enough verbalized triples. It will be discarded.");
-              document = null;
-            }
-          }
-          if (document != null) {
-            // paraphrase document
-            if (paraphraser != null) {
-              try {
-                document = paraphraser.getParaphrase(document);
-              } catch (final Exception e) {
-                LOGGER.error("Got exception from paraphraser. Using the original document.", e);
-              }
-            }
-          }
-        }
-      }
-      // If the generation and paraphrasing were successful
-      if (document != null) {
-        LOGGER.info("Created document #" + counter);
-        document.setDocumentURI("http://aksw.org/generated/" + counter);
-        counter++;
-        documents.add(document);
-        document = null;
-      }
-      try {
-        if (!USE_AVATAR) {
-          Thread.sleep(WAITING_TIME_BETWEEN_DOCUMENTS);
-        }
-      } catch (final InterruptedException e) {
-      }
-    }
-
-    // generate file name and path from corpus name
-    final String filePath = corpusName;
-    // write the documents
-    final NIFWriter writer = new TurtleNIFWriter();
-    FileOutputStream fout = null;
-    int i = 0;
-    try {
-      fout = new FileOutputStream(filePath);
-      for (; i < documents.size(); ++i) {
-        writer.writeNIF(documents.subList(i, i + 1), fout);
-      }
-      // writer.writeNIF(documents, fout);
-    } catch (final Exception e) {
-      System.out.println(documents.get(i));
-      LOGGER.error("Error while writing the documents to file. Aborting.", e);
-      System.out.println(documents.get(i));
-    } finally {
-      if (fout != null) {
-        try {
-          fout.close();
-        } catch (final Exception e) {
-          // nothing to do
-        }
-      }
-    }
-  }
+		// generate file name and path from corpus name
+		final String filePath = corpusName;
+		// write the documents
+		final NIFWriter writer = new TurtleNIFWriter();
+		FileOutputStream fout = null;
+		int i = 0;
+		try {
+			fout = new FileOutputStream(filePath);
+			for (; i < documents.size(); ++i) {
+				writer.writeNIF(documents.subList(i, i + 1), fout);
+			}
+			// writer.writeNIF(documents, fout);
+		} catch (final Exception e) {
+			System.out.println(documents.get(i));
+			LOGGER.error("Error while writing the documents to file. Aborting.", e);
+			System.out.println(documents.get(i));
+		} finally {
+			if (fout != null) {
+				try {
+					fout.close();
+				} catch (final Exception e) {
+					// nothing to do
+				}
+			}
+		}
+	}
 }
