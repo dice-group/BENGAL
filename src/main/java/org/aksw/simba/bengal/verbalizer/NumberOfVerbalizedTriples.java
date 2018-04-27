@@ -1,6 +1,7 @@
 package org.aksw.simba.bengal.verbalizer;
 
 import org.aksw.gerbil.transfer.nif.Marking;
+import org.aksw.gerbil.transfer.nif.ProvenanceInfo;
 
 public class NumberOfVerbalizedTriples implements Marking {
 
@@ -54,6 +55,18 @@ public class NumberOfVerbalizedTriples implements Marking {
 		builder.append(numberOfTriples);
 		builder.append("]");
 		return builder.toString();
-	};
+	}
+
+    @Override
+    public void setProvenanceInfo(ProvenanceInfo provencance) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public ProvenanceInfo getProvenanceInfo() {
+        // TODO Auto-generated method stub
+        return null;
+    };
 
 }
