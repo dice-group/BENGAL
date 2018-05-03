@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.carrotsearch.hppc.BitSet;
+
 /**
  * A deterministic verbalizer which relies on the SemWeb2NL project.
  *
@@ -329,15 +330,14 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 			while (br.ready()) {
 				final String[] line = br.readLine().split("\t");
 				try {
-				final String subject = line[0];
-				final String object = line[1];
-				if (subject.equals(resource)) {
-					label = object;
-					break;
-				}
-				}
-				catch(Exception e){
-				continue;	
+					final String subject = line[0];
+					final String object = line[1];
+					if (subject.equals(resource)) {
+						label = object;
+						break;
+					}
+				} catch (Exception e) {
+					continue;
 				}
 			}
 			br.close();

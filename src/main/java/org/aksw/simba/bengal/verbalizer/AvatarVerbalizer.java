@@ -482,7 +482,7 @@ public class AvatarVerbalizer implements Comparator<String> {
 		}
 
 		qef = new QueryExecutionFactoryDelay(qef, DELAY);
-		
+
 		return qef;
 	}
 

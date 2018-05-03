@@ -56,8 +56,8 @@ public class DatasetAnalyzer {
 		// Dataset dataset = config.getDataset(ExperimentType.D2KB);
 
 		List<DatasetConfiguration> datasetConfigs = new ArrayList<>();
-		datasetConfigs.add(new NIFFileDatasetConfig("abstracts_nl0", "abstracts_nl0.ttl",
-				false, ExperimentType.D2KB, null, null));
+		datasetConfigs.add(
+				new NIFFileDatasetConfig("abstracts_nl0", "abstracts_nl0.ttl", false, ExperimentType.D2KB, null, null));
 
 		PrintStream output = null;
 		try {

@@ -21,8 +21,10 @@ import org.junit.runners.Parameterized.Parameters;
 public class ParaphraserImplTest implements ParaphraseService {
 
 	public static void main(String[] args) {
-		System.out.println((new Paraphrasing()).paraphrase(
-				"Tartar's mouth country is Azerbaijan. Azerbaijan's leader is Ilham Aliyev. Ilham Aliyev's successor is Artur Rasizade. Artur Rasizade's party is New Azerbaijan Party. New Azerbaijan Party's headquarter is Baku."));
+		System.out.println((new Paraphrasing())
+				.paraphrase("Tartar's mouth country is Azerbaijan." + " Azerbaijan's leader is Ilham Aliyev."
+						+ " Ilham Aliyev's successor is Artur Rasizade. Artur Rasizade's party is New Azerbaijan Party. New Azerbaijan Party's headquarter is Baku."
+						+ ""));
 	}
 
 	@Parameters

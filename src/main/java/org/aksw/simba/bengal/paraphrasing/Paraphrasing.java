@@ -80,7 +80,7 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 
 			String wordnetPath = prop.getProperty("dict");
 
-			//System.out.println("Original text:  " + originalText);
+			// System.out.println("Original text: " + originalText);
 			Lexicon lexicon = Lexicon.getDefaultLexicon();
 			NLGFactory nlgFactory = new NLGFactory(lexicon);
 			Realiser realiser = new Realiser(lexicon);
@@ -90,112 +90,118 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 
 			String[] sentences = originalText.split(Pattern.quote(". "));
 
+			for (int k = 0; k < sentences.length; k++) {
+				sentences[k] = sentences[k].replace(".", "");
+				// System.out.println(sentences[k]);
+			}
+
 			int vSentences = 0;
 			for (int i = 0; i < sentences.length; i++) {
-				
+
 				try {
-				vSentences = vSentences + 1;
+					vSentences = vSentences + 1;
+					String[] Phrase = new String[100];
+					// String[] Phrase = sentences[i].split("[,; ]+");
+					Phrase = sentences[i].split("\\s+");
+					// String[] Pos = sentences[i].split("[,; ]+");
+					String[] Pos = sentences[i].split("\\s+");
 
-				// String[] Phrase = sentences[i].split("[,; ]+");
-				String[] Phrase = sentences[i].split("\\s+");
-				// String[] Pos = sentences[i].split("[,; ]+");
-				String[] Pos = sentences[i].split("\\s+");
-
-				for (int k = 0; k < Pos.length; k++) {
-					Pos[k] = tagger.tagString(Pos[k]);
-				}
-
-				int value = 0;
-				int value2 = 0;
-				for (int k = 0; k < Pos.length; k++) {
-					if (Pos[k].contains("_V") && value == 0) {
-						value = k;
+					for (int k = 0; k < Pos.length; k++) {
+						Pos[k] = tagger.tagString(Pos[k]);
 					}
-					if (Pos[k].contains("_NN ") && value2 == 0) {
-						value2 = k;
+
+					int value = 0;
+					int value2 = 0;
+					for (int k = 0; k < Pos.length; k++) {
+						if (Pos[k].contains("_V") && value == 0) {
+							value = k;
+						}
+						if (Pos[k].contains("_NN ") && value2 == 0) {
+							value2 = k;
+						}
 					}
-				}
-				if (value2 > 0) {
-					Phrase[value2] = synWN(Phrase[value2], Pos[value2], wordnetPath);
-				}
-				s.setVerb(Phrase[value]);
 
-				String inf_verb = s.getVerb().toString().replace("WordElement[", "").replace(":VERB]", "");
-
-				if (!inf_verb.equals("be")) {
-					s.setVerb(synWN(s.getVerb().toString().replace("WordElement[", "").replace(":VERB]", ""),
-							Pos[value], wordnetPath));
-				}
-
-				StringBuilder sb = new StringBuilder();
-				if (Phrase.length > 1) {
-					sb.append(Phrase[0]);
-					for (int w = 1; w < value; w++) {
-						sb.append(" ").append(Phrase[w]);
+					if (value2 > 0) {
+						Phrase[value2] = synWN(Phrase[value2], Pos[value2], wordnetPath);
 					}
-				}
+					s.setVerb(Phrase[value]);
 
-				s.setSubject(sb.toString());
+					String inf_verb = s.getVerb().toString().replace("WordElement[", "").replace(":VERB]", "");
 
-				StringBuilder sc = new StringBuilder();
-				if (Phrase.length > 1) {
-					sc.append(Phrase[value + 1]);
-					for (int z = value + 2; z < Phrase.length; z++) {
-						sc.append(" ").append(Phrase[z]);
+					if (!inf_verb.equals("be")) {
+						s.setVerb(synWN(s.getVerb().toString().replace("WordElement[", "").replace(":VERB]", ""),
+								Pos[value], wordnetPath));
 					}
-				}
 
-				s.setObject(sc.toString());
+					StringBuilder sb = new StringBuilder();
+					if (Phrase.length > 1) {
+						sb.append(Phrase[0]);
+						for (int w = 1; w < value; w++) {
+							sb.append(" ").append(Phrase[w]);
+						}
+					}
 
-				if (!inf_verb.equals("be")) {
-					s.setFeature(Feature.PERFECT, true);
-				}
+					s.setSubject(sb.toString());
+
+					StringBuilder sc = new StringBuilder();
+					if (Phrase.length > 1) {
+						sc.append(Phrase[value + 1]);
+						for (int z = value + 2; z < Phrase.length; z++) {
+							sc.append(" ").append(Phrase[z]);
+						}
+					}
+
+					s.setObject(sc.toString());
+
+					if (!inf_verb.equals("be")) {
+						s.setFeature(Feature.PERFECT, true);
+					}
 
 					if (!Pos[value].equals(Pos.length) && !Pos[value + 1].contains("JJ")) {
 						s.setFeature(Feature.PASSIVE, true);
 					}
-				String output = realiser.realiseSentence(s) + " ";
-				String[] paraphraser = output.split("\\s+");
-				int find = 0;
-				int found = 0;
-				StringBuilder end = new StringBuilder();
-				if (paraphraser.length > 1) {
-					end.append(paraphraser[0]);
-					for (int z = 1; z < paraphraser.length; z++) {
-						if (z == found) {
-							continue;
-						}
-						if (paraphraser[z].equals("been")) {
-							find++;
-							if (inf_verb.equals("be") && find > 0) {
-								continue;
-							} else if ((!inf_verb.equals("be") && find > 1)) {
+					String output = realiser.realiseSentence(s); // + " .";
+					String[] paraphraser = output.split("\\s+");
+					int find = 0;
+					int found = 0;
+					StringBuilder end = new StringBuilder();
+					if (paraphraser.length > 1) {
+						end.append(paraphraser[0]);
+						for (int z = 1; z < paraphraser.length; z++) {
+							if (z == found) {
 								continue;
 							}
+							if (paraphraser[z].equals("been")) {
+								find++;
+								if (inf_verb.equals("be") && find > 0) {
+									continue;
+								} else if ((!inf_verb.equals("be") && find > 1)) {
+									continue;
+								}
+							}
+							if (paraphraser[z].equals("by")) {
+								continue;
+							}
+							end.append(" ").append(paraphraser[z]);
 						}
-						if (paraphraser[z].equals("by")) {
-							continue;
-						}
-						end.append(" ").append(paraphraser[z]);
 					}
-				}
-				output = end.toString();
-				sentences[i] = output;
-				value = 0;
+					output = end.toString();
+					sentences[i] = output;
+					value = 0;
 				} catch (Exception e) {
-
+					System.out.println("Paraphrasing failed, error" + e);
 				}
 			}
 
 			StringBuilder paraphrased = new StringBuilder();
-			if (sentences.length > 1) {
+			if (sentences.length >= 1) {
 				paraphrased.append(sentences[0]);
 				for (int z = 1; z < sentences.length; z++) {
 					paraphrased.append(" ").append(sentences[z]);
 				}
 			}
 			String output = paraphrased.toString();
-			//System.out.println("Paraphrased text:  " + output);
+			System.out.println("Paraphrased text:  " + output);
 			return output;
 		} catch (Exception e) {
 			LOGGER.error("Exception from NLG. Returning null.", e);
@@ -314,11 +320,11 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 				// check that this part of the String does not already have been
 				// blocked
 				try {
-				currentPositions.set(pos, pos + ne.getLength()); 
-				} catch (Exception e){
-					
+					currentPositions.set(pos, pos + ne.getLength());
+				} catch (Exception e) {
+
 				}
-				
+
 			} while (BitSet.intersectionCount(blockedPositions, currentPositions) > 0);
 			// Update the position in the new text
 			newDoc.addMarking(new NamedEntity(pos, ne.getLength(), ne.getUris()));
@@ -344,9 +350,9 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 			writer.writeNIF(documents.subList(i, i + 1), fout);
 			// writer.writeNIF(documents, fout);
 		} catch (Exception e) {
-			//System.out.println(documents.get(i));
+			// System.out.println(documents.get(i));
 			LOGGER.error("Error while writing the documents to file. Aborting.", e);
-			//System.out.println(documents.get(i));
+			// System.out.println(documents.get(i));
 		} finally {
 			if (fout != null) {
 				try {
