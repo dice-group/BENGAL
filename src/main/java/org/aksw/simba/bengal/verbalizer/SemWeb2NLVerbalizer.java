@@ -23,9 +23,12 @@ import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.MeaningSpan;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
+import org.aksw.rdf2en.triple2nl.TripleConverter;
+import org.aksw.rdf2es.triple2nl.TripleConverterSpanish;
+import org.aksw.rdf2pt.triple2nl.TripleConverterPortuguese;
 import org.aksw.simba.bengal.paraphrasing.Paraphrasing;
-import org.aksw.simba.bengal.triple2nl.TripleConverter;
 import org.aksw.simba.bengal.utils.DocumentHelper;
+import org.aksw.simba.bengal.verbalizer.VerbalizerSelectorFactory.SelectorLanguage;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
@@ -57,29 +60,39 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 			Arrays.asList("http://www.w3.org/2000/01/rdf-schema#comment", "http://www.w3.org/2000/01/rdf-schema#label",
 					"http://dbpedia.org/ontology/abstract", "http://dbpedia.org/ontology/wikiPageExternalLink",
 					"http://dbpedia.org/class/yago/Wikicat", "http://commons.wikimedia.org/wiki",
-					"http://www.w3.org/2002/07/owl#sameAs", "http://dbpedia.org/ontology/thumbnail"));
+					"http://www.w3.org/2002/07/owl#sameAs", "http://dbpedia.org/ontology/thumbnail", 
+					"http://purl.org/dc/terms/subject", "http://dbpedia.org/ontology/related",
+					"http://es.dbpedia.org/property/tipoAdm", "http://es.dbpedia.org/property/adm", 
+					"http://es.dbpedia.org/property/referencia", "http://dbpedia.org/ontology/wikiPageDisambiguates"));
 
-	private final TripleConverter converter;
+
 	private final SparqlEndpoint endpoint;
 	private final boolean usePronouns;
 	private final boolean useSurfaceForms;
+	private static SelectorLanguage language;
+	//TripleConverterSpanish converter = new TripleConverterSpanish();
+	//TripleConverter converter = new TripleConverter();
+
+	ReplaceSubjectWithPronoun replaceSubToPro = new ReplaceSubjectWithPronoun(); 
 
 	public SemWeb2NLVerbalizer(final SparqlEndpoint endpoint) {
-		this(endpoint, false, false);
+		this(endpoint, false, false, language);
 	}
 
 	public SemWeb2NLVerbalizer(final SparqlEndpoint endpoint, final boolean usePronouns,
-			final boolean useSurfaceForms) {
+			final boolean useSurfaceForms, final SelectorLanguage selectorLanguage) {
 		this.endpoint = endpoint;
 		this.usePronouns = usePronouns;
 		this.useSurfaceForms = useSurfaceForms;
-		converter = new TripleConverter(this.endpoint);
+		this.language = selectorLanguage;
+
 	}
 
 	@Override
-	public Document generateDocument(final List<Statement> triples) {
+	public Document generateDocument(final List<Statement> triples) throws IOException {
 		// generate sub documents
 		final List<Document> subDocs = new ArrayList<Document>(triples.size());
+		final VerbalizerSelectorFactory verbalizerFactory = new VerbalizerSelectorFactory();
 		Document document;
 		Triple t;
 		Resource subject, oldSubject = null;
@@ -89,13 +102,15 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 			if (!s.getObject().isAnon() && !BLACKLISTED_PROPERTIES.contains(s.getPredicate().getURI())) {
 
 				t = Triple.create(subject.asNode(), s.getPredicate().asNode(), s.getObject().asNode());
-				document = new DocumentImpl(converter.convert(t).toString());
+				
+				document = verbalizerFactory.create(language, t, endpoint);
+				//document = new DocumentImpl(converter.convert(t).toString());
 				if (annotateDocument(document, s)) {
 					// if the current subject has been seen in the sentence
 					// before
 					// we can replace it with a pronoun.
-					if (usePronouns && (subject.equals(oldSubject) && (SFchange == 1))) {
-						replaceSubjectWithPronoun(document, subject.getURI());
+					if (usePronouns && (subject.equals(oldSubject) && (SFchange == 0))) {
+						replaceSubToPro.replaceSubjectWithPronoun(document, subject.getURI(), language, endpoint);
 					}
 					// we can replace it with a list of surface forms.
 					if (useSurfaceForms && (subject.equals(oldSubject)) && (SFchange == 0)) {
@@ -152,79 +167,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 	 * @param document
 	 * @param s
 	 */
-	public void replaceSubjectWithPronoun(final Document document, final String subjectUri) {
-		final MeaningSpan marking = DocumentHelper.searchFirstOccurrence(subjectUri, document);
-		if (marking == null) {
-			return;
-		}
 
-		final String documentText = document.getText();
-		String pronoun = null;
-
-		final int start = marking.getStartPosition();
-		int length = marking.getLength();
-		final int end = start + length;
-		// FIXME check whether the entity is preceded by an article
-
-		// Check whether we have to add a possessive pronoun (check whether it
-		// has a trailing "'s")
-		boolean possessiveForm = false;
-		if ((documentText.charAt(end - 2) == '\'') && (documentText.charAt(end - 1) == 's')) {
-			possessiveForm = true;
-		} else if (((end + 1) < documentText.length()) && (documentText.charAt(end) == '\'')) {
-			possessiveForm = true;
-			// Check whether we have "<entity>'" or "<entity>'s"
-			if (documentText.charAt(end + 1) == 's') {
-				length += 2;
-			} else {
-				length += 1;
-			}
-		}
-
-		// Choose a pronoun based on the type of the entity
-		final String type = getType(subjectUri);
-		if (type != null) {
-			if (type.equals("http://dbpedia.org/ontology/Person")) {
-				// Get the comment text
-				final String commentString = getGender(subjectUri);
-				// Search for a pronoun that identifies the person as man
-				if (commentString.contains(" he ") || commentString.contains("He ")
-						|| commentString.contains(" his ")) {
-					if (possessiveForm) {
-						pronoun = (start == 0) ? "His" : "his";
-					} else {
-						pronoun = (start == 0) ? "He" : "he";
-					}
-					// Ok, than search for a woman
-				} else if (commentString.contains(" she ") || commentString.contains("She ")
-						|| commentString.contains(" her ")) {
-					if (possessiveForm) {
-						pronoun = (start == 0) ? "Her" : "her";
-					} else {
-						pronoun = (start == 0) ? "She" : "she";
-					}
-				}
-				// If we can not decide the gender we shouldn't insert a pronoun
-				// (let it be null)
-			} else {
-				if (possessiveForm) {
-					pronoun = (start == 0) ? "Its" : "its";
-				} else {
-					pronoun = (start == 0) ? "It" : "it";
-				}
-			}
-		}
-
-		// If we couldn't find a pronoun
-		if (pronoun == null) {
-			return;
-		}
-
-		// Remove the marking from the document
-		document.getMarkings().remove(marking);
-		// Replace the text
-		DocumentHelper.replaceText(document, start, length, pronoun);
-	}
 
 	@SuppressWarnings("deprecation")
 	private Document replaceSubjectWithSurfaceForms(final Document document, final Statement statements)
@@ -349,78 +292,6 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 
 	}
 
-	private String getType(final String uri) {
-
-		if (uri.equals(RDF.type.getURI())) {
-			return "type";
-		} else if (uri.equals(RDFS.label.getURI())) {
-			return "label";
-		}
-		try {
-			final String labelQuery = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
-					+ " PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
-					+ " PREFIX dbr: <http://dbpedia.org/resource/>" + " PREFIX dbo: <http://dbpedia.org/ontology/>"
-					+ " PREFIX owl: <http://www.w3.org/2002/07/owl#>" + " SELECT  DISTINCT ?lcs WHERE {"
-					+ " ?lcs ^rdf:type <" + uri + ">." + "?lcs rdfs:subClassOf ?x." + "?x rdfs:subClassOf owl:Thing."
-					+ "?lcs rdfs:label []." + "}";
-
-			// take care of graph issues. Only takes one graph. Seems like some
-			// sparql endpoint do
-			// not like the FROM option.
-			final ResultSet results = new SparqlQuery(labelQuery, endpoint).send();
-
-			// get label from knowledge base
-			String label = null;
-			QuerySolution soln;
-			while (results.hasNext()) {
-				soln = results.nextSolution();
-				// process query here
-				{
-					label = soln.getResource("lcs").toString();
-				}
-			}
-			return label;
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private String getGender(final String uri) {
-
-		if (uri.equals(RDF.type.getURI())) {
-			return "type";
-		} else if (uri.equals(RDFS.label.getURI())) {
-			return "label";
-		}
-		try {
-			final String labelQuery = "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
-					+ "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
-					+ "PREFIX dbr: <http://dbpedia.org/resource/>" + "PREFIX dbo: <http://dbpedia.org/ontology/>"
-					+ "PREFIX owl: <http://www.w3.org/2002/07/owl#>" + "SELECT  DISTINCT ?com WHERE {" + " <" + uri
-					+ "> rdfs:comment ?com." + "FILTER (lang(?com) = 'en')." + "}";
-
-			// take care of graph issues. Only takes one graph. Seems like some
-			// sparql endpoint do
-			// not like the FROM option.
-			final ResultSet results = new SparqlQuery(labelQuery, endpoint).send();
-
-			// get label from knowledge base
-			String label = null;
-			QuerySolution soln;
-			while (results.hasNext()) {
-				soln = results.nextSolution();
-				// process query here
-				{
-					label = soln.getLiteral("com").getLexicalForm();
-				}
-			}
-			return label;
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
 
 	private String getEnglishLabel(final String resource) {
 
@@ -431,7 +302,10 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		}
 		try {
 			final String labelQuery = "SELECT ?label WHERE {<" + resource + "> "
-					+ "<http://www.w3.org/2000/01/rdf-schema#label> ?label. FILTER (lang(?label) = 'en')}";
+					+ "<http://www.w3.org/2000/01/rdf-schema#label> ?label. "
+					+ "FILTER (lang(?label) = '"+language.name().toLowerCase()+"')"
+					//+ "FILTER (lang(?label) = 'en')"
+					+ "}";
 
 			// take care of graph issues. Only takes one graph. Seems like some
 			// sparql endpoint do
@@ -459,7 +333,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 	private boolean annotateDocument(final Document document, final Resource resource) {
 		final String label = getEnglishLabel(resource.getURI());
 		if (label == null) {
-			LOGGER.info("Couldn't find an English label for " + resource.toString() + ". Returning null.");
+			LOGGER.info("Couldn't find an "+language.toString()+" label for " + resource.toString() + ". Returning null.");
 			return false;
 		}
 		final String text = document.getText();
@@ -477,12 +351,12 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		// we have to find out which label is the longer one and start with it
 		String label1 = getEnglishLabel(subject.getURI());
 		if (label1 == null) {
-			LOGGER.info("Couldn't find an English label for " + subject.toString() + ". Returning null.");
+			LOGGER.info("Couldn't find an "+language.toString()+" label for " + subject.toString() + ". Returning null.");
 			return false;
 		}
 		String label2 = getEnglishLabel(object.getURI());
 		if (label2 == null) {
-			LOGGER.info("Couldn't find an English label for " + object.toString() + ". Returning null.");
+			LOGGER.info("Couldn't find an "+language.toString()+" label for " + object.toString() + ". Returning null.");
 			return false;
 		}
 		Resource r1, r2;
@@ -528,14 +402,14 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		return true;
 	}
 
-	public static void main(final String args[]) {
+	public static void main(final String args[]) throws IOException {
 		final Set<String> classes = new HashSet<>();
 		classes.add("<http://dbpedia.org/ontology/Person>");
 		classes.add("<http://dbpedia.org/ontology/Place>");
 		classes.add("<http://dbpedia.org/ontology/Organisation>");
 		// TripleSelector ts = new SimpleSummarySelector(classes, classes,
 		// "http://dbpedia.org/sparql", null);
-		final SemWeb2NLVerbalizer verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia(), true, true);
+		final SemWeb2NLVerbalizer verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia(), true, true, SelectorLanguage.EN);
 
 		final List<Statement> stmts = Arrays.asList(
 				new StatementImpl(new ResourceImpl("http://dbpedia.org/resource/Streaky_Bay,_South_Australia"),

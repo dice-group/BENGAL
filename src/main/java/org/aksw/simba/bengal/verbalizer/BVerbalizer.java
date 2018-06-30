@@ -5,6 +5,7 @@
  */
 package org.aksw.simba.bengal.verbalizer;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.aksw.gerbil.transfer.nif.Document;
@@ -17,5 +18,5 @@ import org.apache.jena.rdf.model.Statement;
  * @author ngonga
  */
 public interface BVerbalizer {
-	public Document generateDocument(List<Statement> triples);
+	public Document generateDocument(List<Statement> triples) throws IOException;
 }

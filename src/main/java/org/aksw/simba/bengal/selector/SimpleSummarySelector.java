@@ -82,6 +82,8 @@ public class SimpleSummarySelector extends AbstractSelector {
 		if (resources == null) {
 			resources = getResources(sourceClasses);
 		}
+		
+		//System.out.println(resources.toString());
 		int counter = Math.abs(r.nextInt() % resources.size());
 		// get symmetric CBD
 		List<Statement> statements = getSummary(resources.get(counter));

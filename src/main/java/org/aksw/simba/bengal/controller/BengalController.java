@@ -7,6 +7,7 @@ package org.aksw.simba.bengal.controller;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +31,7 @@ import org.aksw.simba.bengal.verbalizer.AvatarVerbalizer;
 import org.aksw.simba.bengal.verbalizer.BVerbalizer;
 import org.aksw.simba.bengal.verbalizer.NumberOfVerbalizedTriples;
 import org.aksw.simba.bengal.verbalizer.SemWeb2NLVerbalizer;
+import org.aksw.simba.bengal.verbalizer.VerbalizerSelectorFactory.SelectorLanguage;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.rdf.model.Statement;
 import org.dllearner.kb.sparql.SparqlEndpoint;
@@ -46,19 +48,20 @@ public class BengalController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BengalController.class);
 	private static final String NUMBEROFDOCS = "numberofdocs";
-	private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 1;
+	private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 10;
 	private static final long SEED = 21;
 	private static final int MIN_SENTENCE = 3;
 	private static final int MAX_SENTENCE = 10;
-	private static final SelectorType SELECTOR_TYPE = SelectorType.STAR;
-	private static final boolean USE_PARAPHRASING = true;
+	private static final SelectorType SELECTOR_TYPE = SelectorType.PATH;
+	private static final boolean USE_PARAPHRASING = false;
 	private static final boolean USE_PRONOUNS = true;
-	private static final boolean USE_SURFACEFORMS = true;
+	private static final boolean USE_SURFACEFORMS = false;
 	private static final boolean USE_AVATAR = false;
 	private static final boolean USE_ONLY_OBJECT_PROPERTIES = false;
 	private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 500;
+	private static final SelectorLanguage SELECTOR_LANGUAGE = SelectorLanguage.ES;
 
-	public static void main(final String args[]) {
+	public static void main(final String args[]) throws IOException {
 		String typeSubString = "";
 		if (USE_AVATAR) {
 			typeSubString = "summary";
@@ -82,10 +85,43 @@ public class BengalController {
 			}
 			}
 		}
+		
+		String language = "";
+		String endpoint = "";
+		switch (SELECTOR_LANGUAGE) {
+		case EN: {
+			language = "en";
+			endpoint = "http://dbpedia.org/sparql";
+			break;
+		}
+		case ES: {
+			language = "es";
+			endpoint = "http://es.dbpedia.org/sparql";
+			break;
+		}
+		case PT: {
+			language = "pt";
+			endpoint = "http://pt.dbpedia.org/sparql";
+			break;
+		}
+		case FR: {
+			language = "fr";
+			endpoint = "http://fr.dbpedia.org/sparql";
+			break;
+		}
+		case IT: {
+			language = "it";
+			endpoint = "http://it.dbpedia.org/sparql";
+			break;
+		}
+		}
 		final String corpusName = "bengal_" + typeSubString + "_" + (USE_PRONOUNS ? "pronoun_" : "")
 				+ (USE_SURFACEFORMS ? "surface_" : "") + (USE_PARAPHRASING ? "para_" : "")
-				+ Integer.toString(DEFAULT_NUMBER_OF_DOCUMENTS) + ".ttl";
-		BengalController.generateCorpus(new HashMap<String, String>(), "http://dbpedia.org/sparql", corpusName);
+				+ Integer.toString(DEFAULT_NUMBER_OF_DOCUMENTS) + "_"+ language + ".ttl";
+		BengalController.generateCorpus(new HashMap<String, String>(), endpoint, corpusName, language);
+		//BengalController.generateCorpus(new HashMap<String, String>(), "https://query.wikidata.org/", corpusName);
+
+		
 		// This is just to check whether the created documents make sense
 		// If the entities have a bad positioning inside the documents the
 		// parser should print warn messages
@@ -101,12 +137,18 @@ public class BengalController {
 		}
 	}
 
-	public static void generateCorpus(Map<String, String> parameters, final String endpoint, final String corpusName) {
+	public static void generateCorpus(Map<String, String> parameters, final String endpoint, final String corpusName, final String language) throws IOException {
 		if (parameters == null) {
 			parameters = new HashMap<>();
 		}
 
 		final Set<String> classes = new HashSet<>();
+		
+		//classes.add("<http://dbpedia.org/ontology/AnatomicalStructure>");
+		//classes.add("<http://dbpedia.org/ontology/Biomolecule>");
+		//ChemicalSubstance
+		//Disease
+		//classes.add("<http://dbpedia.org/ontology/Event>");
 		classes.add("<http://dbpedia.org/ontology/Person>");
 		classes.add("<http://dbpedia.org/ontology/Place>");
 		classes.add("<http://dbpedia.org/ontology/Organisation>");
@@ -126,7 +168,7 @@ public class BengalController {
 			tripleSelector = factory.create(SELECTOR_TYPE, classes,
 					USE_ONLY_OBJECT_PROPERTIES ? classes : new HashSet<>(), endpoint, null, MIN_SENTENCE, MAX_SENTENCE,
 					SEED);
-			verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia(), USE_PRONOUNS, USE_SURFACEFORMS);
+			verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.create(endpoint, ""), USE_PRONOUNS, USE_SURFACEFORMS, SELECTOR_LANGUAGE);
 		}
 		Paraphraser paraphraser = null;
 		if (USE_PARAPHRASING) {

@@ -41,7 +41,7 @@
 			<artifactId>gerbil.nif.transfer</artifactId>
 			<version>1.2.2-jena3.1</version>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.aksw.semweb2nl</groupId>
 			<artifactId>triple2nl</artifactId>
 			<version>0.1-SNAPSHOT</version>
@@ -55,7 +55,7 @@
 					<artifactId>jena-sparql-api-core</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>org.aksw.semweb2nl</groupId>
 			<artifactId>avatar</artifactId>
@@ -72,6 +72,21 @@
 			</exclusions>
 		</dependency>
 		<!-- needed to make avatar work -->
+		<dependency>
+		<groupId>org.aksw.dice</groupId>
+		<artifactId>core</artifactId>
+		<version>1.0</version>
+				<exclusions>
+				<exclusion>
+					<groupId>org.dllearner</groupId>
+					<artifactId>components-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.aksw.jena-sparql-api</groupId>
+					<artifactId>jena-sparql-api-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<dependency>
 			<groupId>uk.ac.abdn</groupId>
 			<artifactId>SimpleNLG</artifactId>
