@@ -5,16 +5,18 @@ import org.aksw.simba.bengal.selector.TripleSelectorFactory.SelectorType;
 public class BengalRunConfig {
 
 	private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 1;
-	private static final long SEED = 21;
-	private static final int MIN_SENTENCE = 3;
-	private static final int MAX_SENTENCE = 10;
-	private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 500;
+	private static final long DEF_SEED = System.currentTimeMillis();
+	private static final int DEF_MIN_SENTENCE = 3;
+	private static final int DEF_MAX_SENTENCE = 10;
+	private static final long DEF_WAITING_TIME_BETWEEN_DOCUMENTS = 500;
+	private static final String DEF_SPARQL_EP = "http://dbpedia.org/sparql";
 
 	private int numberOfDocs = DEFAULT_NUMBER_OF_DOCUMENTS;
-	private long seed = SEED;
-	private int minSentence = MIN_SENTENCE;
-	private int maxSentence = MAX_SENTENCE;
-	private long waitTime = WAITING_TIME_BETWEEN_DOCUMENTS;
+	private long seed = DEF_SEED;
+	private int minSentence = DEF_MIN_SENTENCE;
+	private int maxSentence = DEF_MAX_SENTENCE;
+	private long waitTime = DEF_WAITING_TIME_BETWEEN_DOCUMENTS;
+	private String sqparqlEndPoint = DEF_SPARQL_EP;
 	private String selectorType;
 
 	private boolean useParaphrasing = false;
@@ -110,28 +112,36 @@ public class BengalRunConfig {
 	public void setWaitTime(long waitTime) {
 		this.waitTime = waitTime;
 	}
-	
+
 	public SelectorType getSelectorTypeEnum() {
 		SelectorType res = null;
-		if(selectorType.matches("star")) {
+		if (selectorType.matches("star")) {
 			res = SelectorType.STAR;
-		} else if(selectorType.matches("hybrid")) {
+		} else if (selectorType.matches("hybrid")) {
 			res = SelectorType.HYBRID;
-		} else if(selectorType.matches("path")) {
+		} else if (selectorType.matches("path")) {
 			res = SelectorType.PATH;
-		} else if(selectorType.matches("sym")) {
+		} else if (selectorType.matches("sym")) {
 			res = SelectorType.SIM_STAR;
 		}
 		return res;
 	}
 
+	public String getSqparqlEndPoint() {
+		return sqparqlEndPoint;
+	}
+
+	public void setSparqlEndPoint(String sqparqlEndPoint) {
+		this.sqparqlEndPoint = sqparqlEndPoint;
+	}
+
 	@Override
 	public String toString() {
-		return "BengalRunConfig [defNumberOf=" + numberOfDocs + ", seed=" + seed + ", minSentence=" + minSentence
-				+ ", maxSentence=" + maxSentence + ", selectorType=" + selectorType + ", useParaphrasing="
-				+ useParaphrasing + ", usePronouns=" + usePronouns + ", useSurfaceForms=" + useSurfaceForms
-				+ ", useAvatars=" + useAvatars + ", useOnlyObjectProps=" + useOnlyObjectProps + ", waitTime=" + waitTime
-				+ "]";
+		return "BengalRunConfig [numberOfDocs=" + numberOfDocs + ", seed=" + seed + ", minSentence=" + minSentence
+				+ ", maxSentence=" + maxSentence + ", waitTime=" + waitTime + ", selectorType=" + selectorType
+				+ ", sqparqlEndPoint=" + sqparqlEndPoint + ", useParaphrasing=" + useParaphrasing + ", usePronouns="
+				+ usePronouns + ", useSurfaceForms=" + useSurfaceForms + ", useAvatars=" + useAvatars
+				+ ", useOnlyObjectProps=" + useOnlyObjectProps + "]";
 	}
 
 }

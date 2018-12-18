@@ -64,20 +64,32 @@ public class BengalController {
 	protected static final HelpFormatter HELP_FORMATTER = new HelpFormatter();
 	protected static final PrintWriter CONSOLE_WRITER = new PrintWriter(System.out);
 	protected static final String APP_NAME = "Bengal";
+	
+	protected static final String PARAPHRASE_OPT = "pp";
+	protected static final String PRONOUNS_OPT = "pr";
+	protected static final String SURFACEFORMS_OPT = "sf";
+	protected static final String ONLYOBJECTPROPS_OPT = "o";
+	protected static final String NUMBEROFDOCUMENTS_OPT = "n";
+	protected static final String SEEDS_OPT = "sd";
+	protected static final String MINSENTENCE_OPT = "mns";
+	protected static final String MAXSENTENCE_OPT = "mxs";
+	protected static final String WAITTIME_OPT = "wt";
+	protected static final String SPARQLENDPOINT_OPT = "se";
+	protected static final String SELECTORTYPE_OPT = "st";
 
 	static {
-		  CLI_OPTS.addOption("pp", "paraphrase", false, "Use Paraphrasing");
-	      CLI_OPTS.addOption("pr", "pronouns", false, "Use Pronouns");
-	      CLI_OPTS.addOption("sf", "surfaceforms", false, "Use Surface-Forms");
-	      CLI_OPTS.addOption("a", "avatar", false, "Use Avatars");
-	      CLI_OPTS.addOption("o", "onlyobjectprops", false, "Use only object properties");
+		CLI_OPTS.addOption(PARAPHRASE_OPT, "paraphrase", false, "Use Paraphrasing");
+		CLI_OPTS.addOption(PRONOUNS_OPT, "pronouns", false, "Use Pronouns");
+		CLI_OPTS.addOption(SURFACEFORMS_OPT, "surfaceforms", false, "Use Surface-Forms");
+		CLI_OPTS.addOption(ONLYOBJECTPROPS_OPT, "onlyobjectprops", false, "Use only object properties");
 
-	      CLI_OPTS.addOption("nd", "numberofdocuments", true, "Number of documents");
-	      CLI_OPTS.addOption("sd", "seed", true, "Number of Seeds");
-	      CLI_OPTS.addOption("mns", "minsentence", true, "Minimum number of sentences");
-	      CLI_OPTS.addOption("mxs", "maxsentence", true, "Maximum number of sentences");
-	      CLI_OPTS.addOption("wt", "waittime", true, "Wait time between documents");
-	      CLI_OPTS.addRequiredOption("st", "selectortype", true, "Selector Type ('star', 'hybrid', 'path' or 'sym')");
+		CLI_OPTS.addOption(NUMBEROFDOCUMENTS_OPT, "numberofdocuments", true, "Number of documents");
+		CLI_OPTS.addOption(SEEDS_OPT, "seed", true, "Number of Seeds");
+		CLI_OPTS.addOption(MINSENTENCE_OPT, "minsentence", true, "Minimum number of sentences");
+		CLI_OPTS.addOption(MAXSENTENCE_OPT, "maxsentence", true, "Maximum number of sentences");
+		CLI_OPTS.addOption(WAITTIME_OPT, "waittime", true, "Wait time between documents");
+		CLI_OPTS.addOption(SPARQLENDPOINT_OPT, "sparqlendpoint", true, "Sparql Endpoint");
+		CLI_OPTS.addRequiredOption(SELECTORTYPE_OPT, "selectortype", true, "Selector Type ('star', 'hybrid', 'path', 'sym' or 'summary')");
 	}
 	
 	  
@@ -107,39 +119,44 @@ public class BengalController {
 	protected static BengalRunConfig generateConfigBean(CommandLine cmd) {
 		BengalRunConfig runConfig = new BengalRunConfig();
 		
-		if(cmd.hasOption("pp")) {
+		if(cmd.hasOption(PARAPHRASE_OPT)) {
 			runConfig.setUseParaphrasing(true);
 		}
-		if(cmd.hasOption("pr")) {
+		if(cmd.hasOption(PRONOUNS_OPT)) {
 			runConfig.setUsePronouns(true);
 		}
-		if(cmd.hasOption("sf")) {
+		if(cmd.hasOption(SURFACEFORMS_OPT)) {
 			runConfig.setUseSurfaceForms(true);
 		}
-		if(cmd.hasOption("a")) {
-			runConfig.setUseAvatars(true);
-		}
-		if(cmd.hasOption("o")) {
+		
+		if(cmd.hasOption(ONLYOBJECTPROPS_OPT)) {
 			runConfig.setUseOnlyObjectProps(true);
 		}
 		
-		if(cmd.hasOption("nd")) {
-			runConfig.setNumberOfDocs(Integer.parseInt(cmd.getOptionValue("nd")));
+		if(cmd.hasOption(NUMBEROFDOCUMENTS_OPT)) {
+			runConfig.setNumberOfDocs(Integer.parseInt(cmd.getOptionValue(NUMBEROFDOCUMENTS_OPT)));
 		}
-		if(cmd.hasOption("sd")) {
-			runConfig.setSeed(Integer.parseInt(cmd.getOptionValue("sd")));
+		if(cmd.hasOption(SEEDS_OPT)) {
+			runConfig.setSeed(Integer.parseInt(cmd.getOptionValue(SEEDS_OPT)));
 		}
-		if(cmd.hasOption("mns")) {
-			runConfig.setMinSentence(Integer.parseInt(cmd.getOptionValue("mns")));
+		if(cmd.hasOption(MINSENTENCE_OPT)) {
+			runConfig.setMinSentence(Integer.parseInt(cmd.getOptionValue(MINSENTENCE_OPT)));
 		}
-		if(cmd.hasOption("mxs")) {
-			runConfig.setMaxSentence(Integer.parseInt(cmd.getOptionValue("mxs")));
+		if(cmd.hasOption(MAXSENTENCE_OPT)) {
+			runConfig.setMaxSentence(Integer.parseInt(cmd.getOptionValue(MAXSENTENCE_OPT)));
 		}
-		if(cmd.hasOption("wt")) {
-			runConfig.setWaitTime(Long.parseLong(cmd.getOptionValue("wt")));
+		if(cmd.hasOption(WAITTIME_OPT)) {
+			runConfig.setWaitTime(Long.parseLong(cmd.getOptionValue(WAITTIME_OPT)));
 		}
-		if(cmd.hasOption("st")) {
-			runConfig.setSelectorType(cmd.getOptionValue("st"));
+		if(cmd.hasOption(SPARQLENDPOINT_OPT)) {
+			runConfig.setSparqlEndPoint(cmd.getOptionValue(SPARQLENDPOINT_OPT));
+		}
+		if(cmd.hasOption(SELECTORTYPE_OPT)) {
+			String selectorType = cmd.getOptionValue(SELECTORTYPE_OPT);
+			if(selectorType.equals("summary")) {
+				runConfig.setUseAvatars(true);
+			}
+			runConfig.setSelectorType(selectorType);
 		}
 		
 		return runConfig;
@@ -162,7 +179,7 @@ public class BengalController {
 
 		}
 		catch (ParseException e) {
-			throw e;
+			// do nothing
 		}
 
 		return hasHelp;
@@ -175,7 +192,7 @@ public class BengalController {
 		final String corpusName = "bengal_" + typeSubString + "_" + (runConfig.isUsePronouns() ? "pronoun_" : "")
 				+ (runConfig.isUseSurfaceForms() ? "surface_" : "") + (runConfig.isUseParaphrasing() ? "para_" : "")
 				+ Integer.toString(runConfig.getNumberOfDocs()) + ".ttl";
-		BengalController.generateCorpus(runConfig, "http://dbpedia.org/sparql", corpusName);
+		BengalController.generateCorpus(runConfig, corpusName);
 		// This is just to check whether the created documents make sense
 		// If the entities have a bad positioning inside the documents the
 		// parser should print warn messages
@@ -191,7 +208,8 @@ public class BengalController {
 		}
 	}
 
-	public static void generateCorpus(BengalRunConfig runConfig, final String endpoint, final String corpusName) {
+	public static void generateCorpus(BengalRunConfig runConfig, final String corpusName) {
+		String endpoint = runConfig.getSqparqlEndPoint();
 
 		final Set<String> classes = new HashSet<>();
 		classes.add("<http://dbpedia.org/ontology/Person>");
