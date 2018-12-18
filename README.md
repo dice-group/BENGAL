@@ -16,7 +16,7 @@ If you need help or you have questions do not hesitate to write an email to  <a 
 2) Download the WordNet dictionary which is available at ``http://wordnetcode.princeton.edu/3.0/WordNet-3.0.tar.gz``.
 3) After extracting these files upload them into ``https://github.com/dice-group/BENGAL/tree/master/data``. Note that only the ``dict`` folder of WordNet is necessary. 
 4) mvn clean install
-5) to run the program from cli use the jar file with "exec" appended at the end,
+5) to run the program from cli use the jar file with the postfix 'exec'.
 ```
 Example Usage:
 ```
