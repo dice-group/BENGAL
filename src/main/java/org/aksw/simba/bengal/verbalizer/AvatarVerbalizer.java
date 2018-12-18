@@ -103,8 +103,7 @@ public class AvatarVerbalizer implements Comparator<String> {
 	 * Returns list of triples for a given resource and data source
 	 *
 	 * @param res
-	 * @param endpoint
-	 * @param graph
+	 * @param targetClasses
 	 * @return CBD of res
 	 */
 	protected List<Statement> getSymmetricCBD(Resource res, Set<String> targetClasses) {
@@ -197,8 +196,7 @@ public class AvatarVerbalizer implements Comparator<String> {
 	 * Returns list of triples for a given resource and data source
 	 *
 	 * @param res
-	 * @param endpoint
-	 * @param graph
+	 * @param targetClasses
 	 * @return CBD of res
 	 */
 	protected List<Statement> getCBD(Resource res, Set<String> targetClasses) {
@@ -266,10 +264,6 @@ public class AvatarVerbalizer implements Comparator<String> {
 	 *
 	 * @param classes
 	 *            Set of classes for resources
-	 * @param endpoint
-	 *            Endpoint from which the data is to be selected
-	 * @param graph
-	 *            Graph for the endpoint
 	 * @return Sorted list of resources from the classes
 	 */
 	protected List<Resource> getResources(Set<String> classes) {

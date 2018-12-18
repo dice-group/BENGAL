@@ -14,9 +14,9 @@ import org.apache.jena.riot.RDFDataMgr;
  * http://wiki.dbpedia.org/services-resources/documentation/datasets#genders .
  * Example data:
  *
- * <http://dbpedia.org/resource/Algol> <http://xmlns.com/foaf/0.1/gender>
- * "male"@en . <http://dbpedia.org/resource/Abraham>
- * <http://xmlns.com/foaf/0.1/gender> "male"@en .
+ * &lt;http://dbpedia.org/resource/Algol&gt; &lt;http://xmlns.com/foaf/0.1/gender&gt;
+ * "male"@en . &lt;http://dbpedia.org/resource/Abraham&gt;
+ * &lt;http://xmlns.com/foaf/0.1/gender&gt; "male"@en .
  *
  * @author Lorenz Buehmann
  */

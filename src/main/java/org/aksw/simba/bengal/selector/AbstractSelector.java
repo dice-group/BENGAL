@@ -328,10 +328,6 @@ public abstract class AbstractSelector implements TripleSelector {
 	 *
 	 * @param classes
 	 *            Set of classes for resources
-	 * @param endpoint
-	 *            Endpoint from which the data is to be selected
-	 * @param graph
-	 *            Graph for the endpoint
 	 * @return Sorted list of resources from the classes
 	 */
 	protected List<Resource> getResources(Set<String> classes) {

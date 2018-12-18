@@ -7,11 +7,10 @@ package org.aksw.simba.bengal.controller;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.aksw.gerbil.io.nif.NIFParser;
@@ -19,17 +18,26 @@ import org.aksw.gerbil.io.nif.NIFWriter;
 import org.aksw.gerbil.io.nif.impl.TurtleNIFParser;
 import org.aksw.gerbil.io.nif.impl.TurtleNIFWriter;
 import org.aksw.gerbil.transfer.nif.Document;
+import org.aksw.simba.bengal.config.BengalRunConfig;
 import org.aksw.simba.bengal.paraphrasing.ParaphraseService;
 import org.aksw.simba.bengal.paraphrasing.Paraphraser;
 import org.aksw.simba.bengal.paraphrasing.ParaphraserImpl;
 import org.aksw.simba.bengal.paraphrasing.Paraphrasing;
 import org.aksw.simba.bengal.selector.TripleSelector;
 import org.aksw.simba.bengal.selector.TripleSelectorFactory;
-import org.aksw.simba.bengal.selector.TripleSelectorFactory.SelectorType;
 import org.aksw.simba.bengal.verbalizer.AvatarVerbalizer;
 import org.aksw.simba.bengal.verbalizer.BVerbalizer;
 import org.aksw.simba.bengal.verbalizer.NumberOfVerbalizedTriples;
 import org.aksw.simba.bengal.verbalizer.SemWeb2NLVerbalizer;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.rdf.model.Statement;
 import org.dllearner.kb.sparql.SparqlEndpoint;
@@ -45,47 +53,146 @@ import org.slf4j.LoggerFactory;
 public class BengalController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BengalController.class);
-	private static final String NUMBEROFDOCS = "numberofdocs";
-	private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 1;
-	private static final long SEED = 21;
-	private static final int MIN_SENTENCE = 3;
-	private static final int MAX_SENTENCE = 10;
-	private static final SelectorType SELECTOR_TYPE = SelectorType.STAR;
-	private static final boolean USE_PARAPHRASING = true;
-	private static final boolean USE_PRONOUNS = true;
-	private static final boolean USE_SURFACEFORMS = true;
-	private static final boolean USE_AVATAR = false;
-	private static final boolean USE_ONLY_OBJECT_PROPERTIES = false;
-	private static final long WAITING_TIME_BETWEEN_DOCUMENTS = 500;
+	
+	protected static final Option HELP_OPT = Option.builder("h")
+	          .longOpt("help")
+	          .required(false)
+	          .hasArg(false)
+	          .build();
+	
+	protected static final Options CLI_OPTS = new Options();
+	protected static final HelpFormatter HELP_FORMATTER = new HelpFormatter();
+	protected static final PrintWriter CONSOLE_WRITER = new PrintWriter(System.out);
+	protected static final String APP_NAME = "Bengal";
+	
+	protected static final String PARAPHRASE_OPT = "pp";
+	protected static final String PRONOUNS_OPT = "pr";
+	protected static final String SURFACEFORMS_OPT = "sf";
+	protected static final String ONLYOBJECTPROPS_OPT = "o";
+	protected static final String NUMBEROFDOCUMENTS_OPT = "n";
+	protected static final String SEEDS_OPT = "sd";
+	protected static final String MINSENTENCE_OPT = "mns";
+	protected static final String MAXSENTENCE_OPT = "mxs";
+	protected static final String WAITTIME_OPT = "wt";
+	protected static final String SPARQLENDPOINT_OPT = "se";
+	protected static final String SELECTORTYPE_OPT = "st";
 
-	public static void main(final String args[]) {
-		String typeSubString = "";
-		if (USE_AVATAR) {
-			typeSubString = "summary";
-		} else {
-			switch (SELECTOR_TYPE) {
-			case STAR: {
-				typeSubString = "star";
-				break;
-			}
-			case HYBRID: {
-				typeSubString = "hybrid";
-				break;
-			}
-			case PATH: {
-				typeSubString = "path";
-				break;
-			}
-			case SIM_STAR: {
-				typeSubString = "sym";
-				break;
-			}
+	static {
+		CLI_OPTS.addOption(PARAPHRASE_OPT, "paraphrase", false, "Use Paraphrasing");
+		CLI_OPTS.addOption(PRONOUNS_OPT, "pronouns", false, "Use Pronouns");
+		CLI_OPTS.addOption(SURFACEFORMS_OPT, "surfaceforms", false, "Use Surface-Forms");
+		CLI_OPTS.addOption(ONLYOBJECTPROPS_OPT, "onlyobjectprops", false, "Use only object properties");
+
+		CLI_OPTS.addOption(NUMBEROFDOCUMENTS_OPT, "numberofdocuments", true, "Number of documents, default: "+BengalRunConfig.DEFAULT_NUMBER_OF_DOCUMENTS);
+		CLI_OPTS.addOption(SEEDS_OPT, "seed", true, "Number of Seeds, default: Current System time in milliseconds");
+		CLI_OPTS.addOption(MINSENTENCE_OPT, "minsentence", true, "Minimum number of sentences, default: "+BengalRunConfig.DEF_MIN_SENTENCE);
+		CLI_OPTS.addOption(MAXSENTENCE_OPT, "maxsentence", true, "Maximum number of sentences, default: "+BengalRunConfig.DEF_MAX_SENTENCE);
+		CLI_OPTS.addOption(WAITTIME_OPT, "waittime", true, "Wait time between documents in milliseconds, default: "+BengalRunConfig.DEF_WAITING_TIME_BETWEEN_DOCUMENTS);
+		CLI_OPTS.addOption(SPARQLENDPOINT_OPT, "sparqlendpoint", true, "Sparql Endpoint, default: "+BengalRunConfig.DEF_SPARQL_EP);
+		CLI_OPTS.addRequiredOption(SELECTORTYPE_OPT, "selectortype", true, "Selector Type ('star', 'hybrid', 'path', 'sym' or 'summary')");
+	}
+	
+	  
+
+	public static void main(final String args[]) throws ParseException {
+		//Check if help queried
+		if(checkForHelp(args)) {
+			HELP_FORMATTER.printHelp(APP_NAME, CLI_OPTS);
+		}else {
+			//***Parsing Stage***
+			//Create a parser
+			CommandLineParser parser = new DefaultParser();
+			try {
+				//parse the options passed as command line arguments
+				CommandLine cmd = parser.parse( CLI_OPTS, args);
+				//***Interrogation Stage***
+				BengalRunConfig runConfig = generateConfigBean(cmd);
+				process(runConfig);
+			} catch(MissingOptionException | MissingArgumentException  me  ) {
+				CONSOLE_WRITER.write(me.getMessage()+"\n");
+				HELP_FORMATTER.printUsage(CONSOLE_WRITER,80,APP_NAME, CLI_OPTS);
+				CONSOLE_WRITER.flush();
 			}
 		}
-		final String corpusName = "bengal_" + typeSubString + "_" + (USE_PRONOUNS ? "pronoun_" : "")
-				+ (USE_SURFACEFORMS ? "surface_" : "") + (USE_PARAPHRASING ? "para_" : "")
-				+ Integer.toString(DEFAULT_NUMBER_OF_DOCUMENTS) + ".ttl";
-		BengalController.generateCorpus(new HashMap<String, String>(), "http://dbpedia.org/sparql", corpusName);
+	}
+	
+	protected static BengalRunConfig generateConfigBean(CommandLine cmd) {
+		BengalRunConfig runConfig = new BengalRunConfig();
+		
+		if(cmd.hasOption(PARAPHRASE_OPT)) {
+			runConfig.setUseParaphrasing(true);
+		}
+		if(cmd.hasOption(PRONOUNS_OPT)) {
+			runConfig.setUsePronouns(true);
+		}
+		if(cmd.hasOption(SURFACEFORMS_OPT)) {
+			runConfig.setUseSurfaceForms(true);
+		}
+		
+		if(cmd.hasOption(ONLYOBJECTPROPS_OPT)) {
+			runConfig.setUseOnlyObjectProps(true);
+		}
+		
+		if(cmd.hasOption(NUMBEROFDOCUMENTS_OPT)) {
+			runConfig.setNumberOfDocs(Integer.parseInt(cmd.getOptionValue(NUMBEROFDOCUMENTS_OPT)));
+		}
+		if(cmd.hasOption(SEEDS_OPT)) {
+			runConfig.setSeed(Integer.parseInt(cmd.getOptionValue(SEEDS_OPT)));
+		}
+		if(cmd.hasOption(MINSENTENCE_OPT)) {
+			runConfig.setMinSentence(Integer.parseInt(cmd.getOptionValue(MINSENTENCE_OPT)));
+		}
+		if(cmd.hasOption(MAXSENTENCE_OPT)) {
+			runConfig.setMaxSentence(Integer.parseInt(cmd.getOptionValue(MAXSENTENCE_OPT)));
+		}
+		if(cmd.hasOption(WAITTIME_OPT)) {
+			runConfig.setWaitTime(Long.parseLong(cmd.getOptionValue(WAITTIME_OPT)));
+		}
+		if(cmd.hasOption(SPARQLENDPOINT_OPT)) {
+			runConfig.setSparqlEndPoint(cmd.getOptionValue(SPARQLENDPOINT_OPT));
+		}
+		if(cmd.hasOption(SELECTORTYPE_OPT)) {
+			String selectorType = cmd.getOptionValue(SELECTORTYPE_OPT);
+			if(selectorType.equals("summary")) {
+				runConfig.setUseAvatars(true);
+			}
+			runConfig.setSelectorType(selectorType);
+		}
+		
+		return runConfig;
+	}
+	
+	
+	protected static boolean checkForHelp(String[] args) throws ParseException  { 
+		boolean hasHelp = false;
+		Options options = new Options();
+		try {
+			options.addOption(HELP_OPT);
+
+			CommandLineParser parser = new DefaultParser();
+
+			CommandLine cmd = parser.parse(options, args);
+
+			if (cmd.hasOption(HELP_OPT.getOpt())) {
+				hasHelp = true;
+			}
+
+		}
+		catch (ParseException e) {
+			// do nothing
+		}
+
+		return hasHelp;
+	  }
+	
+	
+	protected static void process(BengalRunConfig runConfig) {
+		String typeSubString = runConfig.getSelectorType();
+		
+		final String corpusName = "bengal_" + typeSubString + "_" + (runConfig.isUsePronouns() ? "pronoun_" : "")
+				+ (runConfig.isUseSurfaceForms() ? "surface_" : "") + (runConfig.isUseParaphrasing() ? "para_" : "")
+				+ Integer.toString(runConfig.getNumberOfDocs()) + ".ttl";
+		BengalController.generateCorpus(runConfig, corpusName);
 		// This is just to check whether the created documents make sense
 		// If the entities have a bad positioning inside the documents the
 		// parser should print warn messages
@@ -101,10 +208,8 @@ public class BengalController {
 		}
 	}
 
-	public static void generateCorpus(Map<String, String> parameters, final String endpoint, final String corpusName) {
-		if (parameters == null) {
-			parameters = new HashMap<>();
-		}
+	public static void generateCorpus(BengalRunConfig runConfig, final String corpusName) {
+		String endpoint = runConfig.getSqparqlEndPoint();
 
 		final Set<String> classes = new HashSet<>();
 		classes.add("<http://dbpedia.org/ontology/Person>");
@@ -116,20 +221,20 @@ public class BengalController {
 		TripleSelector tripleSelector = null;
 		BVerbalizer verbalizer = null;
 		AvatarVerbalizer alernativeVerbalizer = null;
-		if (USE_AVATAR) {
+		if (runConfig.isUseAvatars()) {
 			alernativeVerbalizer = AvatarVerbalizer.create(classes,
-					USE_ONLY_OBJECT_PROPERTIES ? classes : new HashSet<>(), endpoint, null, SEED, false);
+					runConfig.isUseOnlyObjectProps() ? classes : new HashSet<>(), endpoint, null, runConfig.getSeed(), false);
 			if (alernativeVerbalizer == null) {
 				return;
 			}
 		} else {
-			tripleSelector = factory.create(SELECTOR_TYPE, classes,
-					USE_ONLY_OBJECT_PROPERTIES ? classes : new HashSet<>(), endpoint, null, MIN_SENTENCE, MAX_SENTENCE,
-					SEED);
-			verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia(), USE_PRONOUNS, USE_SURFACEFORMS);
+			tripleSelector = factory.create(runConfig.getSelectorTypeEnum(), classes,
+					runConfig.isUseOnlyObjectProps() ? classes : new HashSet<>(), endpoint, null, runConfig.getMinSentence(), runConfig.getMaxSentence(),
+					runConfig.getSeed());
+			verbalizer = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia(), runConfig.isUsePronouns(), runConfig.isUseSurfaceForms());
 		}
 		Paraphraser paraphraser = null;
-		if (USE_PARAPHRASING) {
+		if (runConfig.isUseParaphrasing()) {
 			final ParaphraseService paraService = Paraphrasing.create();
 			if (paraService != null) {
 				paraphraser = new ParaphraserImpl(paraService);
@@ -140,31 +245,24 @@ public class BengalController {
 		}
 
 		// Get the number of documents from the parameters
-		int numberOfDocuments = DEFAULT_NUMBER_OF_DOCUMENTS;
-		if (parameters.containsKey(NUMBEROFDOCS)) {
-			try {
-				numberOfDocuments = Integer.parseInt(parameters.get(NUMBEROFDOCS));
-			} catch (final Exception e) {
-				LOGGER.error("Could not parse number of documents");
-			}
-		}
+		int numberOfDocuments = runConfig.getNumberOfDocs();
 		List<Statement> triples;
 		Document document = null;
 		final List<Document> documents = new ArrayList<>();
 		int counter = 1;
 		while (documents.size() < numberOfDocuments) {
-			if (USE_AVATAR) {
+			if (runConfig.isUseAvatars()) {
 				document = alernativeVerbalizer.nextDocument();
 			} else {
 				// select triples
 				triples = tripleSelector.getNextStatements();
-				if ((triples != null) && (triples.size() >= MIN_SENTENCE)) {
+				if ((triples != null) && (triples.size() >= runConfig.getMinSentence())) {
 					// create document
 					document = verbalizer.generateDocument(triples);
 					if (document != null) {
 						final List<NumberOfVerbalizedTriples> tripleCounts = document
 								.getMarkings(NumberOfVerbalizedTriples.class);
-						if ((tripleCounts.size() > 0) && (tripleCounts.get(0).getNumberOfTriples() < MIN_SENTENCE)) {
+						if ((tripleCounts.size() > 0) && (tripleCounts.get(0).getNumberOfTriples() < runConfig.getMinSentence())) {
 							LOGGER.error(
 									"The generated document does not have enough verbalized triples. It will be discarded.");
 							document = null;
@@ -191,8 +289,8 @@ public class BengalController {
 				document = null;
 			}
 			try {
-				if (!USE_AVATAR) {
-					Thread.sleep(WAITING_TIME_BETWEEN_DOCUMENTS);
+				if (!runConfig.isUseAvatars()) {
+					Thread.sleep(runConfig.getWaitTime());
 				}
 			} catch (final InterruptedException e) {
 			}

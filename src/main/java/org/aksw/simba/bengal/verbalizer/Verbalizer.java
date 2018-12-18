@@ -162,7 +162,7 @@ public class Verbalizer {
 
 	/**
 	 * Gets all triples for resource r and property p. If outgoing is true it
-	 * returns all triples with <r,p,o>, else <s,p,r>
+	 * returns all triples with &lt;r,p,o&gt;, else &lt;s,p,r&gt;
 	 *
 	 * @param r
 	 *            the resource
