@@ -24,18 +24,21 @@ java -cp ./target/BENGAL-1.0-SNAPSHOT-exec.jar org.aksw.simba.bengal.controller.
 ```
 CLI Options:
 ```
- -mns,--minsentence <arg>       Minimum number of sentences
- -mxs,--maxsentence <arg>       Maximum number of sentences
- -n,--numberofdocuments <arg>   Number of documents
+ -mns,--minsentence <arg>       Minimum number of sentences, default: 3
+ -mxs,--maxsentence <arg>       Maximum number of sentences, default: 10
+ -n,--numberofdocuments <arg>   Number of documents, default: 1
  -o,--onlyobjectprops           Use only object properties
  -pp,--paraphrase               Use Paraphrasing
  -pr,--pronouns                 Use Pronouns
- -sd,--seed <arg>               Number of Seeds
- -se,--sparqlendpoint <arg>     Sparql Endpoint
+ -sd,--seed <arg>               Number of Seeds, default: Current System
+                                time in milliseconds
+ -se,--sparqlendpoint <arg>     Sparql Endpoint, default:
+                                http://dbpedia.org/sparql
  -sf,--surfaceforms             Use Surface-Forms
  -st,--selectortype <arg>       Selector Type ('star', 'hybrid', 'path',
                                 'sym' or 'summary')
- -wt,--waittime <arg>           Wait time between documents
+ -wt,--waittime <arg>           Wait time between documents in
+                                milliseconds, default: 500
 ```
 ### Portuguese Version
 
