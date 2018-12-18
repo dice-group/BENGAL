@@ -4,12 +4,12 @@ import org.aksw.simba.bengal.selector.TripleSelectorFactory.SelectorType;
 
 public class BengalRunConfig {
 
-	private static final int DEFAULT_NUMBER_OF_DOCUMENTS = 1;
-	private static final long DEF_SEED = System.currentTimeMillis();
-	private static final int DEF_MIN_SENTENCE = 3;
-	private static final int DEF_MAX_SENTENCE = 10;
-	private static final long DEF_WAITING_TIME_BETWEEN_DOCUMENTS = 500;
-	private static final String DEF_SPARQL_EP = "http://dbpedia.org/sparql";
+	public static final int DEFAULT_NUMBER_OF_DOCUMENTS = 1;
+	public static final long DEF_SEED = System.currentTimeMillis();
+	public static final int DEF_MIN_SENTENCE = 3;
+	public static final int DEF_MAX_SENTENCE = 10;
+	public static final long DEF_WAITING_TIME_BETWEEN_DOCUMENTS = 500;
+	public static final String DEF_SPARQL_EP = "http://dbpedia.org/sparql";
 
 	private int numberOfDocs = DEFAULT_NUMBER_OF_DOCUMENTS;
 	private long seed = DEF_SEED;

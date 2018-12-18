@@ -83,12 +83,12 @@ public class BengalController {
 		CLI_OPTS.addOption(SURFACEFORMS_OPT, "surfaceforms", false, "Use Surface-Forms");
 		CLI_OPTS.addOption(ONLYOBJECTPROPS_OPT, "onlyobjectprops", false, "Use only object properties");
 
-		CLI_OPTS.addOption(NUMBEROFDOCUMENTS_OPT, "numberofdocuments", true, "Number of documents");
-		CLI_OPTS.addOption(SEEDS_OPT, "seed", true, "Number of Seeds");
-		CLI_OPTS.addOption(MINSENTENCE_OPT, "minsentence", true, "Minimum number of sentences");
-		CLI_OPTS.addOption(MAXSENTENCE_OPT, "maxsentence", true, "Maximum number of sentences");
-		CLI_OPTS.addOption(WAITTIME_OPT, "waittime", true, "Wait time between documents");
-		CLI_OPTS.addOption(SPARQLENDPOINT_OPT, "sparqlendpoint", true, "Sparql Endpoint");
+		CLI_OPTS.addOption(NUMBEROFDOCUMENTS_OPT, "numberofdocuments", true, "Number of documents, default: "+BengalRunConfig.DEFAULT_NUMBER_OF_DOCUMENTS);
+		CLI_OPTS.addOption(SEEDS_OPT, "seed", true, "Number of Seeds, default: Current System time in milliseconds");
+		CLI_OPTS.addOption(MINSENTENCE_OPT, "minsentence", true, "Minimum number of sentences, default: "+BengalRunConfig.DEF_MIN_SENTENCE);
+		CLI_OPTS.addOption(MAXSENTENCE_OPT, "maxsentence", true, "Maximum number of sentences, default: "+BengalRunConfig.DEF_MAX_SENTENCE);
+		CLI_OPTS.addOption(WAITTIME_OPT, "waittime", true, "Wait time between documents in milliseconds, default: "+BengalRunConfig.DEF_WAITING_TIME_BETWEEN_DOCUMENTS);
+		CLI_OPTS.addOption(SPARQLENDPOINT_OPT, "sparqlendpoint", true, "Sparql Endpoint, default: "+BengalRunConfig.DEF_SPARQL_EP);
 		CLI_OPTS.addRequiredOption(SELECTORTYPE_OPT, "selectortype", true, "Selector Type ('star', 'hybrid', 'path', 'sym' or 'summary')");
 	}
 	
