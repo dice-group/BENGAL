@@ -494,7 +494,7 @@ public class TripleConverter {
 
 	/**
 	 * Whether to encapsulate the value of string literals in "".
-	 * {@see LiteralConverter#setEncapsulateStringLiterals(boolean)}
+	 * See: {@link LiteralConverter#setEncapsulateStringLiterals(boolean)}
 	 * 
 	 * @param encapsulateStringLiterals
 	 *            TRUE if string has to be wrapped in "", otherwise FALSE

@@ -37,23 +37,23 @@ import java.util.Set;
  * 
  * 
  * The PlingStemmer stems an English noun (plural or singular) to its singular
- * form. It deals with "firemen"->"fireman", it knows Greek stuff like
- * "appendices"->"appendix" and yes, it was a lot of work to compile these
+ * form. It deals with "firemen"-&gt;"fireman", it knows Greek stuff like
+ * "appendices"-&gt;"appendix" and yes, it was a lot of work to compile these
  * exceptions. Examples:
  * 
  * <PRE>
      System.out.println(PlingStemmer.stem("boy"));
-     ----> boy
+     ----&gt; boy
      System.out.println(PlingStemmer.stem("boys"));
-     ----> boy
+     ----&gt; boy
      System.out.println(PlingStemmer.stem("biophysics"));
-     ---->  biophysics
+     ----&gt;  biophysics
      System.out.println(PlingStemmer.stem("automata"));
-     ----> automaton
+     ----&gt; automaton
      System.out.println(PlingStemmer.stem("genus"));
-     ----> genus
+     ----&gt; genus
      System.out.println(PlingStemmer.stem("emus"));
-     ----> emu
+     ----&gt; emu
  * </PRE>
  * <P>
  * 

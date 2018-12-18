@@ -150,7 +150,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 	 * Replaces the first occurrence of the statements subject with a pronoun.
 	 *
 	 * @param document
-	 * @param s
+	 * @param subjectUri
 	 */
 	public void replaceSubjectWithPronoun(final Document document, final String subjectUri) {
 		final MeaningSpan marking = DocumentHelper.searchFirstOccurrence(subjectUri, document);
