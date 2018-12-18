@@ -278,10 +278,10 @@
 						<goals>
 							<goal>shade</goal>
 						</goals>
-						<configuration>
-							<shadedArtifactAttached>true</shadedArtifactAttached>
-							<shadedClassifierName>exec</shadedClassifierName>
-						</configuration>
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>exec</shadedClassifierName>
+                        </configuration>
 					</execution>
 				</executions>
 			</plugin>
