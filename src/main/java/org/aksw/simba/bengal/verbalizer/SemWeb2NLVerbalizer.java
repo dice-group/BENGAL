@@ -77,7 +77,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 	}
 
 	@Override
-	public Document generateDocument(final List<Statement> triples) {
+	public Document generateDocument(final List<Statement> triples, String sfFilePath) {
 		// generate sub documents
 		final List<Document> subDocs = new ArrayList<Document>(triples.size());
 		Document document;
@@ -100,7 +100,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 					// we can replace it with a list of surface forms.
 					if (useSurfaceForms && (subject.equals(oldSubject)) && (SFchange == 0)) {
 						try {
-							document = replaceSubjectWithSurfaceForms(document, s);
+							document = replaceSubjectWithSurfaceForms(document, s, sfFilePath);
 							SFchange = 1;
 						} catch (final IOException e) {
 							// TODO Auto-generated catch block
@@ -227,7 +227,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 	}
 
 	@SuppressWarnings("deprecation")
-	private Document replaceSubjectWithSurfaceForms(final Document document, final Statement statements)
+	private Document replaceSubjectWithSurfaceForms(final Document document, final Statement statements, String sfFilePath)
 			throws IOException {
 
 		final MeaningSpan marking = DocumentHelper.searchFirstOccurrence(statements.getSubject().toString(), document);
@@ -250,7 +250,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		final String oldLabel = oldText.substring(start, end);
 		String newText;
 		Document newDoc = null;
-		final Map<String, String> labelsToUris = getLabelsForResources(statements);
+		final Map<String, String> labelsToUris = getLabelsForResources(statements, sfFilePath);
 
 		final String labels[] = labelsToUris.keySet().toArray(new String[labelsToUris.size()]);
 		Arrays.sort(labels);
@@ -304,12 +304,12 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		return newDoc;
 	}
 
-	private Map<String, String> getLabelsForResources(final Statement statements) throws IOException {
+	private Map<String, String> getLabelsForResources(final Statement statements, String sfFilePath) throws IOException {
 		final Map<String, String> labelsToUris = new HashMap<String, String>();
 		String uri, label;
 		uri = statements.getSubject().getURI();
 		// System.out.println("Resource to get SF" + uri);
-		label = getSurfaceForm(uri);
+		label = getSurfaceForm(uri,sfFilePath);
 		// System.out.println("Label SF" + label);
 		if (label != null) {
 			labelsToUris.put(label, uri);
@@ -317,9 +317,9 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 		return labelsToUris;
 	}
 
-	private String getSurfaceForm(final String resource) throws IOException {
+	private String getSurfaceForm(final String resource, String sfFilePath) throws IOException {
 		try {
-			final String surfaceFormTSV = Paraphrasing.prop.getProperty("surfaceForms");
+			final String surfaceFormTSV = sfFilePath;
 			// LOGGER.info("Getting surface forms from: " + surfaceFormTSV);
 			final File file = new File(surfaceFormTSV);
 			String label = "";
@@ -548,7 +548,7 @@ public class SemWeb2NLVerbalizer implements BVerbalizer, Comparator<NamedEntity>
 						new PropertyImpl("http://dbpedia.org/ontology/country"),
 						new ResourceImpl("http://dbpedia.org/resource/Australia")));
 
-		final Document doc = verbalizer.generateDocument(stmts);
+		final Document doc = verbalizer.generateDocument(stmts, Paraphrasing.prop.getProperty("surfaceForms"));
 		System.out.println(doc);
 		// for (int i = 0; i <= 5; i++) {
 		// List<Statement> stmts = ts.getNextStatements();

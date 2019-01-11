@@ -71,15 +71,15 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 	}
 
 	@Override
-	public String paraphrase(String originalText) {
+	public String paraphrase(String originalText, String dictPath) {
 
 		try {
 			Properties prop = new Properties();
 			InputStream input = Paraphrasing.class.getResourceAsStream("/config/bengal.properties");
 			prop.load(input);
 
-			String wordnetPath = prop.getProperty("dict");
-
+			// String wordnetPath = prop.getProperty("dict");
+			String wordnetPath = dictPath;
 			// System.out.println("Original text: " + originalText);
 			Lexicon lexicon = Lexicon.getDefaultLexicon();
 			NLGFactory nlgFactory = new NLGFactory(lexicon);
@@ -283,12 +283,12 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 		classes.add("<http://dbpedia.org/ontology/Organisation>");
 		TripleSelector ts = new SimpleSummarySelector(classes, classes, "http://dbpedia.org/sparql", null);
 		List<Statement> stmts = ts.getNextStatements();
-		Document doc = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia()).generateDocument(stmts);
+		Document doc = new SemWeb2NLVerbalizer(SparqlEndpoint.getEndpointDBpedia()).generateDocument(stmts, prop.getProperty("surfaceForms"));
 
 		Paraphrasing service = new Paraphrasing();
 
 		String text = doc.getText();
-		String paraphrases = service.paraphrase(text);
+		String paraphrases = service.paraphrase(text, prop.getProperty("dict"));
 
 		Document newDoc = new DocumentImpl(paraphrases, doc.getDocumentURI());
 

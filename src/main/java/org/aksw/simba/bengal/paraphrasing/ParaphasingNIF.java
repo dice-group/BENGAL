@@ -333,12 +333,12 @@ public class ParaphasingNIF {
 
 	}
 
-	public static Document paraphrasingNIF(Document doc) throws IOException {
+	public static Document paraphrasingNIF(Document doc, String dictPath) throws IOException {
 
 		Paraphrasing service = new Paraphrasing();
 		String text = doc.getText();
 		System.out.println(text);
-		String paraphrases = service.paraphrase(text);
+		String paraphrases = service.paraphrase(text, dictPath);
 
 		Document newDoc = new DocumentImpl(paraphrases, doc.getDocumentURI());
 
@@ -407,7 +407,7 @@ public class ParaphasingNIF {
 		int count = 0;
 		for (Document doc : documents) {
 
-			Document newDoc = paraphrasingNIF(doc);
+			Document newDoc = paraphrasingNIF(doc, Paraphrasing.prop.getProperty("dict"));
 			count++;
 			// If the generation and paraphrasing were successful
 			if (newDoc != null) {

@@ -24,7 +24,7 @@ public class ParaphraserImplTest implements ParaphraseService {
 		System.out.println((new Paraphrasing())
 				.paraphrase("Tartar's mouth country is Azerbaijan." + " Azerbaijan's leader is Ilham Aliyev."
 						+ " Ilham Aliyev's successor is Artur Rasizade. Artur Rasizade's party is New Azerbaijan Party. New Azerbaijan Party's headquarter is Baku."
-						+ ""));
+						+ "", Paraphrasing.prop.getProperty("dict")));
 	}
 
 	@Parameters
@@ -111,7 +111,7 @@ public class ParaphraserImplTest implements ParaphraseService {
 	@Test
 	public void test() {
 		ParaphraserImpl paraphraser = new ParaphraserImpl(this);
-		Document newDocument = paraphraser.getParaphrase(document);
+		Document newDocument = paraphraser.getParaphrase(document, Paraphrasing.prop.getProperty("dict"));
 
 		Assert.assertEquals(expectedDocument.getDocumentURI(), newDocument.getDocumentURI());
 		Assert.assertEquals(expectedDocument.getText(), newDocument.getText());
@@ -124,7 +124,7 @@ public class ParaphraserImplTest implements ParaphraseService {
 	}
 
 	@Override
-	public String paraphrase(String originalText) {
+	public String paraphrase(String originalText, String dictPath) {
 		return paraphrasedText;
 	}
 
