@@ -27,5 +27,5 @@ public interface Paraphraser {
 	 * @return the paraphrased document or the original document if a problem
 	 *         occurs.
 	 */
-	public Document getParaphrase(Document doc);
+	public Document getParaphrase(Document doc, String dictPath);
 }

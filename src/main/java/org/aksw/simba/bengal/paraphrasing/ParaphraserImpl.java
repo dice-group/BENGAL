@@ -23,9 +23,9 @@ public class ParaphraserImpl implements Paraphraser, Comparator<NamedEntity> {
 	}
 
 	@Override
-	public Document getParaphrase(Document doc) {
+	public Document getParaphrase(Document doc, String dictPath) {
 		String text = doc.getText();
-		String paraphrases = service.paraphrase(text);
+		String paraphrases = service.paraphrase(text, dictPath);
 		if (paraphrases == null) {
 			return doc;
 		}

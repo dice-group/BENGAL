@@ -17,5 +17,5 @@ public interface ParaphraseService {
 	 *            the text that should be paraphrased
 	 * @return the paraphrased text or null if an error occurs.
 	 */
-	public String paraphrase(String originalText);
+	public String paraphrase(String originalText, String dictPath);
 }

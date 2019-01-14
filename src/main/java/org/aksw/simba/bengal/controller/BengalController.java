@@ -76,6 +76,10 @@ public class BengalController {
 	protected static final String WAITTIME_OPT = "wt";
 	protected static final String SPARQLENDPOINT_OPT = "se";
 	protected static final String SELECTORTYPE_OPT = "st";
+	
+	protected static final String DICTPATH_OPT = "dp";
+	protected static final String SFPATH_OPT = "sp";
+	
 
 	static {
 		CLI_OPTS.addOption(PARAPHRASE_OPT, "paraphrase", false, "Use Paraphrasing");
@@ -90,6 +94,9 @@ public class BengalController {
 		CLI_OPTS.addOption(WAITTIME_OPT, "waittime", true, "Wait time between documents in milliseconds, default: "+BengalRunConfig.DEF_WAITING_TIME_BETWEEN_DOCUMENTS);
 		CLI_OPTS.addOption(SPARQLENDPOINT_OPT, "sparqlendpoint", true, "Sparql Endpoint, default: "+BengalRunConfig.DEF_SPARQL_EP);
 		CLI_OPTS.addRequiredOption(SELECTORTYPE_OPT, "selectortype", true, "Selector Type ('star', 'hybrid', 'path', 'sym' or 'summary')");
+		
+		CLI_OPTS.addOption(DICTPATH_OPT, "dictpath", true, "Path to Dictionary's directory, default: "+BengalRunConfig.DEF_DICT_PATH);
+		CLI_OPTS.addOption(SFPATH_OPT, "surfaceformpath", true, "Path to Surface Forms file, default: "+BengalRunConfig.DEF_SURFACEFORM_PATH);
 	}
 	
 	  
@@ -157,6 +164,12 @@ public class BengalController {
 				runConfig.setUseAvatars(true);
 			}
 			runConfig.setSelectorType(selectorType);
+		}
+		if(cmd.hasOption(DICTPATH_OPT)) {
+			runConfig.setDictDirPath(cmd.getOptionValue(DICTPATH_OPT));
+		}
+		if(cmd.hasOption(SFPATH_OPT)) {
+			runConfig.setSurfaceFormFilePath(cmd.getOptionValue(SFPATH_OPT));
 		}
 		
 		return runConfig;
@@ -258,7 +271,7 @@ public class BengalController {
 				triples = tripleSelector.getNextStatements();
 				if ((triples != null) && (triples.size() >= runConfig.getMinSentence())) {
 					// create document
-					document = verbalizer.generateDocument(triples);
+					document = verbalizer.generateDocument(triples, runConfig.getSurfaceFormFilePath());
 					if (document != null) {
 						final List<NumberOfVerbalizedTriples> tripleCounts = document
 								.getMarkings(NumberOfVerbalizedTriples.class);
@@ -272,7 +285,7 @@ public class BengalController {
 						// paraphrase document
 						if (paraphraser != null) {
 							try {
-								document = paraphraser.getParaphrase(document);
+								document = paraphraser.getParaphrase(document, runConfig.getDictDirPath());
 							} catch (final Exception e) {
 								LOGGER.error("Got exception from paraphraser. Using the original document.", e);
 							}
