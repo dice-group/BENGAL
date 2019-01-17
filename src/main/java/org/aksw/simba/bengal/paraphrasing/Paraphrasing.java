@@ -92,7 +92,6 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 
 			for (int k = 0; k < sentences.length; k++) {
 				sentences[k] = sentences[k].replace(".", "");
-				// System.out.println(sentences[k]);
 			}
 
 			int vSentences = 0;
@@ -112,7 +111,13 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 
 					int value = 0;
 					int value2 = 0;
+					String pronoun = "none";
 					for (int k = 0; k < Pos.length; k++) {
+						//System.out.println(Pos[k].toString());
+						if (Pos[k].contains("PRP")) {
+							pronoun = Pos[k];
+						}
+						
 						if (Pos[k].contains("_V") && value == 0) {
 							value = k;
 						}
@@ -135,6 +140,8 @@ public class Paraphrasing implements ParaphraseService, Comparator<NamedEntity> 
 
 					StringBuilder sb = new StringBuilder();
 					if (Phrase.length > 1) {
+						if(Pos[0].contains(Phrase[0]) && Pos[0].contains("PRP") ) {
+						Phrase[0] = Phrase[0].toLowerCase(); }
 						sb.append(Phrase[0]);
 						for (int w = 1; w < value; w++) {
 							sb.append(" ").append(Phrase[w]);
