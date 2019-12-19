@@ -75,6 +75,11 @@ public abstract class AbstractSelector implements TripleSelector {
 					sparqlQueryString = "SELECT ?p ?o WHERE {<" + res
 							+ "> ?p ?o. ?o <http://www.w3.org/2000/01/rdf-schema#label> []."
 							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://www.w3.org/2002/07/owl#sameAs' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageRedirects' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/property' ) )" 
+							+ "FILTER ( strstarts(str(?p), 'http://dbpedia.org/ontology' ) )" 
+							+ "FILTER ( strstarts(str(?o), 'http://dbpedia.org/resource' ) )" 
 							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p
 					// ?o.}";
@@ -83,6 +88,11 @@ public abstract class AbstractSelector implements TripleSelector {
 					sparqlQueryString = sparqlQueryString + " {<" + res
 							+ "> ?p ?o. ?o  <http://www.w3.org/2000/01/rdf-schema#label> []."
 							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://www.w3.org/2002/07/owl#sameAs' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageRedirects' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/property' ) )" 
+							+ "FILTER ( strstarts(str(?p), 'http://dbpedia.org/ontology' ) )" 
+							+ "FILTER ( strstarts(str(?o), 'http://dbpedia.org/resource' ) )" 
 							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = sparqlQueryString + " {<" + res + ">
 					// ?p ?o.}";
@@ -120,6 +130,11 @@ public abstract class AbstractSelector implements TripleSelector {
 					sparqlQueryString = "SELECT ?p ?o WHERE {<" + res
 							+ "> ?p ?o. ?o <http://www.w3.org/2000/01/rdf-schema#label> []."
 							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://www.w3.org/2002/07/owl#sameAs' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageRedirects' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/property' ) )" 
+							+ "FILTER ( strstarts(str(?p), 'http://dbpedia.org/ontology' ) )" 
+							+ "FILTER ( strstarts(str(?o), 'http://dbpedia.org/resource' ) )" 
 							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p
 					// ?o.}";
@@ -128,6 +143,11 @@ public abstract class AbstractSelector implements TripleSelector {
 					sparqlQueryString = sparqlQueryString + " {?o ?p <" + res
 							+ ">. ?o  <http://www.w3.org/2000/01/rdf-schema#label> []."
 							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://www.w3.org/2002/07/owl#sameAs' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageRedirects' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/property' ) )" 
+							+ "FILTER ( strstarts(str(?p), 'http://dbpedia.org/ontology' ) )" 
+							+ "FILTER ( strstarts(str(?o), 'http://dbpedia.org/resource' ) )" 
 							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = sparqlQueryString + " {?o ?p <" + res
 					// + ">.}";
@@ -198,6 +218,11 @@ public abstract class AbstractSelector implements TripleSelector {
 							+ "?p  <http://www.w3.org/2000/01/rdf-schema#label> []."
 							+ "?o  <http://www.w3.org/2000/01/rdf-schema#label> []."
 							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://www.w3.org/2002/07/owl#sameAs' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageRedirects' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/property' ) )" 
+							+ "FILTER ( strstarts(str(?p), 'http://dbpedia.org/ontology' ) )" 
+							+ "FILTER ( strstarts(str(?o), 'http://dbpedia.org/resource' ) )" 
 							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = "SELECT ?p ?o WHERE {<" + res + "> ?p
 					// ?o.}";
@@ -207,6 +232,11 @@ public abstract class AbstractSelector implements TripleSelector {
 							+ "?p  <http://www.w3.org/2000/01/rdf-schema#label> []."
 							+ "?o  <http://www.w3.org/2000/01/rdf-schema#label> []."
 							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageWikiLink' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://www.w3.org/2002/07/owl#sameAs' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/ontology/wikiPageRedirects' ) )"
+							+ "FILTER ( !strstarts(str(?p), 'http://dbpedia.org/property' ) )" 
+							+ "FILTER ( strstarts(str(?p), 'http://dbpedia.org/ontology' ) )" 
+							+ "FILTER ( strstarts(str(?o), 'http://dbpedia.org/resource' ) )" 
 							+ "FILTER ( !strstarts(str(?o), 'wiki' ) )" + "}";
 					// sparqlQueryString = sparqlQueryString + " {<" + res + ">
 					// ?p ?o.}";
