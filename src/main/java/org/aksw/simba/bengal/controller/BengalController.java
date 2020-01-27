@@ -4,15 +4,6 @@
  */
 package org.aksw.simba.bengal.controller;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.aksw.gerbil.io.nif.NIFParser;
 import org.aksw.gerbil.io.nif.NIFWriter;
 import org.aksw.gerbil.io.nif.impl.TurtleNIFParser;
@@ -29,20 +20,21 @@ import org.aksw.simba.bengal.verbalizer.AvatarVerbalizer;
 import org.aksw.simba.bengal.verbalizer.BVerbalizer;
 import org.aksw.simba.bengal.verbalizer.NumberOfVerbalizedTriples;
 import org.aksw.simba.bengal.verbalizer.SemWeb2NLVerbalizer;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingArgumentException;
-import org.apache.commons.cli.MissingOptionException;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.rdf.model.Statement;
 import org.dllearner.kb.sparql.SparqlEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -53,18 +45,18 @@ import org.slf4j.LoggerFactory;
 public class BengalController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BengalController.class);
-	
+
 	protected static final Option HELP_OPT = Option.builder("h")
-	          .longOpt("help")
-	          .required(false)
-	          .hasArg(false)
-	          .build();
-	
+			.longOpt("help")
+			.required(false)
+			.hasArg(false)
+			.build();
+
 	protected static final Options CLI_OPTS = new Options();
 	protected static final HelpFormatter HELP_FORMATTER = new HelpFormatter();
 	protected static final PrintWriter CONSOLE_WRITER = new PrintWriter(System.out);
 	protected static final String APP_NAME = "Bengal";
-	
+
 	protected static final String PARAPHRASE_OPT = "pp";
 	protected static final String PRONOUNS_OPT = "pr";
 	protected static final String SURFACEFORMS_OPT = "sf";
@@ -76,10 +68,10 @@ public class BengalController {
 	protected static final String WAITTIME_OPT = "wt";
 	protected static final String SPARQLENDPOINT_OPT = "se";
 	protected static final String SELECTORTYPE_OPT = "st";
-	
+
 	protected static final String DICTPATH_OPT = "dp";
 	protected static final String SFPATH_OPT = "sp";
-	
+
 
 	static {
 		CLI_OPTS.addOption(PARAPHRASE_OPT, "paraphrase", false, "Use Paraphrasing");
@@ -94,12 +86,12 @@ public class BengalController {
 		CLI_OPTS.addOption(WAITTIME_OPT, "waittime", true, "Wait time between documents in milliseconds, default: "+BengalRunConfig.DEF_WAITING_TIME_BETWEEN_DOCUMENTS);
 		CLI_OPTS.addOption(SPARQLENDPOINT_OPT, "sparqlendpoint", true, "Sparql Endpoint, default: "+BengalRunConfig.DEF_SPARQL_EP);
 		CLI_OPTS.addRequiredOption(SELECTORTYPE_OPT, "selectortype", true, "Selector Type ('star', 'hybrid', 'path', 'sym' or 'summary')");
-		
+
 		CLI_OPTS.addOption(DICTPATH_OPT, "dictpath", true, "Path to Dictionary's directory, default: "+BengalRunConfig.DEF_DICT_PATH);
 		CLI_OPTS.addOption(SFPATH_OPT, "surfaceformpath", true, "Path to Surface Forms file, default: "+BengalRunConfig.DEF_SURFACEFORM_PATH);
 	}
-	
-	  
+
+
 
 	public static void main(final String args[]) throws ParseException {
 		//Check if help queried
@@ -119,13 +111,15 @@ public class BengalController {
 				CONSOLE_WRITER.write(me.getMessage()+"\n");
 				HELP_FORMATTER.printUsage(CONSOLE_WRITER,80,APP_NAME, CLI_OPTS);
 				CONSOLE_WRITER.flush();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}
-	
+
 	protected static BengalRunConfig generateConfigBean(CommandLine cmd) {
 		BengalRunConfig runConfig = new BengalRunConfig();
-		
+
 		if(cmd.hasOption(PARAPHRASE_OPT)) {
 			runConfig.setUseParaphrasing(true);
 		}
@@ -135,11 +129,11 @@ public class BengalController {
 		if(cmd.hasOption(SURFACEFORMS_OPT)) {
 			runConfig.setUseSurfaceForms(true);
 		}
-		
+
 		if(cmd.hasOption(ONLYOBJECTPROPS_OPT)) {
 			runConfig.setUseOnlyObjectProps(true);
 		}
-		
+
 		if(cmd.hasOption(NUMBEROFDOCUMENTS_OPT)) {
 			runConfig.setNumberOfDocs(Integer.parseInt(cmd.getOptionValue(NUMBEROFDOCUMENTS_OPT)));
 		}
@@ -171,12 +165,12 @@ public class BengalController {
 		if(cmd.hasOption(SFPATH_OPT)) {
 			runConfig.setSurfaceFormFilePath(cmd.getOptionValue(SFPATH_OPT));
 		}
-		
+
 		return runConfig;
 	}
-	
-	
-	protected static boolean checkForHelp(String[] args) throws ParseException  { 
+
+
+	protected static boolean checkForHelp(String[] args) throws ParseException  {
 		boolean hasHelp = false;
 		Options options = new Options();
 		try {
@@ -196,12 +190,12 @@ public class BengalController {
 		}
 
 		return hasHelp;
-	  }
-	
-	
-	protected static void process(BengalRunConfig runConfig) {
+	}
+
+
+	protected static void process(BengalRunConfig runConfig) throws Exception {
 		String typeSubString = runConfig.getSelectorType();
-		
+
 		final String corpusName = "bengal_" + typeSubString + "_" + (runConfig.isUsePronouns() ? "pronoun_" : "")
 				+ (runConfig.isUseSurfaceForms() ? "surface_" : "") + (runConfig.isUseParaphrasing() ? "para_" : "")
 				+ Integer.toString(runConfig.getNumberOfDocs()) + ".ttl";
@@ -221,13 +215,14 @@ public class BengalController {
 		}
 	}
 
-	public static void generateCorpus(BengalRunConfig runConfig, final String corpusName) {
+	public static void generateCorpus(BengalRunConfig runConfig, final String corpusName) throws Exception {
 		String endpoint = runConfig.getSqparqlEndPoint();
-
+		FileGenerator fileGenerator = new FileGenerator();
 		final Set<String> classes = new HashSet<>();
-		classes.add("<http://dbpedia.org/ontology/Person>");
-		classes.add("<http://dbpedia.org/ontology/Place>");
-		classes.add("<http://dbpedia.org/ontology/Organisation>");
+		//classes.add("<http://dbpedia.org/ontology/Person>");
+		//classes.add("<http://dbpedia.org/ontology/Place>");
+		//classes.add("<http://dbpedia.org/ontology/Organisation>");
+		classes.add("<http://dbpedia.org/ontology/Company>");
 
 		// instantiate components;
 		final TripleSelectorFactory factory = new TripleSelectorFactory();
@@ -269,6 +264,7 @@ public class BengalController {
 			} else {
 				// select triples
 				triples = tripleSelector.getNextStatements();
+
 				if ((triples != null) && (triples.size() >= runConfig.getMinSentence())) {
 					// create document
 					document = verbalizer.generateDocument(triples, runConfig.getSurfaceFormFilePath());
@@ -282,6 +278,9 @@ public class BengalController {
 						}
 					}
 					if (document != null) {
+						fileGenerator.getJSONTriples(triples);
+						fileGenerator.getDoc(document,triples);
+						fileGenerator.getJSONDoc(document);
 						// paraphrase document
 						if (paraphraser != null) {
 							try {
