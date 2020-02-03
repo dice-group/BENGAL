@@ -49,7 +49,7 @@ public class PosTagAnalyzer {
 		configs.addAll(datasets.getAdaptersForName("N3-Reuters-128"));
 		configs.addAll(datasets.getAdaptersForName("N3-RSS-500"));
 		configs.addAll(datasets.getAdaptersForName("OKE 2015 Task 1 evaluation dataset"));
-		configs.addAll(datasets.getAdaptersForName("OKE 2015 Task 1 gold standard sample"));
+		configs.addAll(datasets.getAdaptersForName("OKE 2015 Task 1 gold standard Sample"));
 
 		configs.add(new NIFFileDatasetConfig("B1", "datasets/B1_bengal_path_100.ttl", true, ExperimentType.A2KB, null,
 				null));

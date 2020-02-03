@@ -4,6 +4,7 @@
  */
 package org.aksw.simba.bengal.controller;
 
+
 import org.aksw.gerbil.io.nif.NIFParser;
 import org.aksw.gerbil.io.nif.NIFWriter;
 import org.aksw.gerbil.io.nif.impl.TurtleNIFParser;
@@ -195,7 +196,6 @@ public class BengalController {
 
 	protected static void process(BengalRunConfig runConfig) throws Exception {
 		String typeSubString = runConfig.getSelectorType();
-
 		final String corpusName = "bengal_" + typeSubString + "_" + (runConfig.isUsePronouns() ? "pronoun_" : "")
 				+ (runConfig.isUseSurfaceForms() ? "surface_" : "") + (runConfig.isUseParaphrasing() ? "para_" : "")
 				+ Integer.toString(runConfig.getNumberOfDocs()) + ".ttl";
@@ -216,8 +216,9 @@ public class BengalController {
 	}
 
 	public static void generateCorpus(BengalRunConfig runConfig, final String corpusName) throws Exception {
-		String endpoint = runConfig.getSqparqlEndPoint();
 		FileGenerator fileGenerator = new FileGenerator();
+
+		String endpoint = runConfig.getSqparqlEndPoint();
 		final Set<String> classes = new HashSet<>();
 		//classes.add("<http://dbpedia.org/ontology/Person>");
 		//classes.add("<http://dbpedia.org/ontology/Place>");
@@ -266,6 +267,7 @@ public class BengalController {
 				triples = tripleSelector.getNextStatements();
 
 				if ((triples != null) && (triples.size() >= runConfig.getMinSentence())) {
+					fileGenerator.getTriples(triples);
 					// create document
 					document = verbalizer.generateDocument(triples, runConfig.getSurfaceFormFilePath());
 					if (document != null) {
@@ -278,9 +280,6 @@ public class BengalController {
 						}
 					}
 					if (document != null) {
-						fileGenerator.getJSONTriples(triples);
-						fileGenerator.getDoc(document,triples);
-						fileGenerator.getJSONDoc(document);
 						// paraphrase document
 						if (paraphraser != null) {
 							try {
@@ -297,6 +296,7 @@ public class BengalController {
 				LOGGER.info("Created document #" + counter);
 				document.setDocumentURI("http://aksw.org/generated/" + counter);
 				counter++;
+				fileGenerator.getDocument(document);
 				documents.add(document);
 				document = null;
 			}
@@ -333,5 +333,7 @@ public class BengalController {
 				}
 			}
 		}
+
 	}
+
 }
