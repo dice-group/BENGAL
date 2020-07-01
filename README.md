@@ -16,7 +16,7 @@ If you need help or you have questions do not hesitate to use the issue tracker.
 2. Download the surface forms file which is available at [`https://hobbitdata.informatik.uni-leipzig.de/bengal/en_surface_forms.tsv.zip`](https://hobbitdata.informatik.uni-leipzig.de/bengal/en_surface_forms.tsv.zip).
 3. Download the WordNet dictionary which is available at [`http://wordnetcode.princeton.edu/3.0/WordNet-3.0.tar.gz`](http://wordnetcode.princeton.edu/3.0/WordNet-3.0.tar.gz).
 4. After extracting the WordNet files, move them into the `BENGAL/data` directory or provide the path using cli. Note that only the `dict` folder of WordNet is necessary. 
-5. Run `mvn clean install` in the Bengal directory
+5. Run `mvn clean install shade:shade` in the Bengal directory
 6. to run the program from cli use the jar file with the postfix `exec`.
 
 ### Executing BENGAL
